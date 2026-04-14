@@ -1,0 +1,21 @@
+﻿pos_token,count,法语里大致含义,中文说明,English explanation
+nf,1284,nom feminin,阴性名词,feminine noun
+v,1189,verbe,动词,verb
+nm,1182,nom masculin,阳性名词,masculine noun
+nadj,360,nom et adjectif,既可作名词也可作形容词,noun and adjective
+adv,306,adverbe,副词,adverb
+adj,272,adjectif,形容词,adjective
+nadj(f),211,nom et adjectif feminin,阴性，既可作名词也可作形容词,feminine noun/adjective
+adj(f),192,adjectif feminin,阴性形容词,feminine adjective
+nm(pl),89,nom masculin pluriel,阳性复数名词,masculine plural noun
+det,62,determinant,限定词/冠词类,determiner
+pro,52,pronom,代词,pronoun
+prep,48,preposition,介词,preposition
+nmi,47,nom masculin invariable,阳性不变名词,invariable masculine noun
+nadj(pl),42,nom et adjectif pluriel,复数，既可作名词也可作形容词,plural noun/adjective
+adj(pl),28,adjectif pluriel,复数形容词,plural adjective
+intj,27,interjection,感叹词,interjection
+conj,24,conjonction,连词,conjunction
+adji,21,adjectif invariable,不变形容词,invariable adjective
+nf(pl),9,nom feminin pluriel,阴性复数名词,feminine plural noun
+adji(pl),2,adjectif invariable pluriel,复数语境中的不变形容词,invariable adjective used in plural context
