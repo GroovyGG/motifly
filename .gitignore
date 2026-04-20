@@ -1,0 +1,4 @@
+.DS_Store
+ios/Motifly/build/
+ios/Motifly/**/*.xcuserstate
+**/xcuserdata/
