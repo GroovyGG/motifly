@@ -1,459 +1,238 @@
 # Product Requirements Document  
-## motifly MVP
+## motifly
 
-### 1. Product Overview
+This document describes **two product phases**. **Version 1** is vocabulary- and word-centric. **Version 2** adds sentence-based dictation and grammar features (much of what earlier drafts of this PRD described as “MVP”).
 
-**Product Name:** motifly  
 **Platform:** iPhone app  
-**Stack:** Swift, SwiftUI, SwiftData  
-
-**Purpose:**  
-motifly helps users improve French listening and spelling through simple sentence-based dictation practice. The MVP focuses on lightweight daily practice, memory reinforcement, and clear progress tracking without adding unnecessary complexity.
+**Stack:** Swift, SwiftUI, SwiftData (v1); optional server/Postgres alignment with [database_schema.md](database_schema.md) in later phases.
 
 ---
 
-### 2. Goal
+## Product phases (overview)
 
-Build a minimal French dictation app that allows users to:
-
-- listen to a French sentence
-- type what they hear
-- check the correct answer
-- review weak sentences later
-- track simple memory performance over time
-
-The app should feel calm, focused, and easy to use in short daily sessions.
+| | **Version 1 — Vocabulary** | **Version 2 — Dictation + grammar** |
+|---|---------------------------|-------------------------------------|
+| **Focus** | Words, word-type cards (e.g. noun / verb / adjective), translations, example lines, light progress | Sentence dictation (listen → type), answer checking, grammar topics/tags tied to sentences |
+| **Primary content unit** | Headword + card metadata + example sentence (for context, not necessarily graded dictation) | Sentence as practice unit; typed dictation against full French line |
+| **Navigation (target)** | Vocabulary tab, Study log; Dictation tab **introduced in v2** (or stubbed in v1 if needed) | Add Dictation tab, deepen Study log; optional **Grammar** tab or area for grammar topics |
 
 ---
 
-### 3. Target Users
+# Part A — Version 1 (current MVP): Vocabulary-first
 
-**Primary users:**
-- French learners at beginner to intermediate level
-- users who want to improve dictation, spelling, and listening
-- users who prefer sentence-level practice over full lessons
+### A.1 Purpose
 
----
+motifly v1 helps French learners **learn and review words** through structured **word cards** (by part of speech), **translations** (e.g. English and Chinese glosses), **example sentences** for context, and a **simple study log** so practice stays lightweight and repeatable.
 
-### 4. MVP Scope
+### A.2 Goals
 
-### In Scope
+- Browse and open **word cards** organized by type (e.g. noun, verb, adjective) and optional themes/tags.
+- Show **headword**, **POS**, **glosses**, and **example** content appropriate to each card type (e.g. gender/articles/plural for nouns; core forms for verbs; agreement grid for adjectives — scope to what v1 ships).
+- Support **audio** where available (headword and/or example) for listening reinforcement without requiring full dictation grading.
+- Track **basic engagement or progress** per word/card (see Study log) without complex algorithms.
 
-- sentence-based dictation practice
-- audio playback for each sentence
-- optional image attached to each sentence for memory support
-- text input for user dictation answer
-- answer checking against the correct sentence
-- simple grammar tag labeling
-- simple review log per sentence
-- simple retrieval score based on past performance
-- user can add their own sentence and optionally record their own audio
+### A.3 Target users
 
-### Out of Scope for MVP
+- Beginner to intermediate French learners who want **vocabulary depth** (forms, context) before or alongside sentence drilling.
+- Users who prefer **short sessions** and clear, calm UI.
 
-- advanced AI correction
-- deep grammar explanations
-- social features
-- multiplayer or classroom mode
-- spaced repetition with complex algorithms
-- offline speech recognition
-- full course curriculum
-- multiple languages
-- teacher dashboards
-- pronunciation scoring
+### A.4 Version 1 scope
 
----
+**In scope**
 
-### 5. Core Product Principles
+- **Vocabulary** list / library: browse, search, filter (e.g. by word type, frequency rank, thematic tag from seed data).
+- **Word card** UI: shared shell (headword, audio, translations, example, POS) + **type-specific blocks** (noun / verb / adjective) per product design.
+- **Study log** (lightweight): e.g. items viewed, simple marks, or minimal scores — enough to support “recent” and “needs attention” without full spaced repetition (SRS).
+- **Local persistence** (SwiftData); no account required for v1.
+- Curated **seed content** (e.g. frequency-list derived CSVs) as the initial word set.
 
-- keep practice fast and lightweight
-- focus on one sentence at a time
-- reduce cognitive overload
-- make review easy
-- prioritize memory reinforcement over too many features
+**Out of scope for v1**
 
----
+- **Sentence dictation** (listen → type → grade full sentence) — **Version 2**.
+- **Grammar topic screens** as a first-class tab — **later** (may overlap v2); v1 may only show POS/theme on cards.
+- Advanced **SRS** (intervals, scheduling algorithms) — optional evolution of Study log after v1; see Part C.
+- AI correction, social, multiplayer, cloud sync, multiple languages.
 
-### 6. User Problems
+### A.5 Core principles (v1)
 
-Users often struggle to:
+- One **word card** in focus; avoid clutter.
+- **Seed-driven** content quality: lemma, POS, examples, and glosses must be trustworthy enough for study.
+- Leave room for **v2** dictation without rewriting v1 word models (examples can become dictation targets later).
 
-- improve French listening with short focused exercises
-- remember sentence patterns over time
-- connect sound spelling and grammar together
-- organize practice material by grammar topic
-- revisit weak sentences efficiently
+### A.6 User problems (v1)
 
-motifly solves this by turning dictation into a simple repeatable habit.
+- Hard to **memorize gender, plurals, and forms** from flat word lists.
+- Need **context** (example) next to the headword.
+- Want **progress** without a heavy course or grammar product yet.
 
----
+### A.7 Key user stories (v1)
 
-### 7. Key User Stories
+- As a learner, I want to **open a word card** and see meaning, POS, and an example so I understand usage.
+- As a learner, I want **noun/verb/adjective-specific** details when relevant so I learn patterns (not just a gloss).
+- As a learner, I want to **find words** by type or theme quickly.
+- As a learner, I want a **study log** so I can return to words I care about.
 
-- As a learner, I want to hear one French sentence and type it out so I can practice listening and spelling.
-- As a learner, I want to see an image with the sentence so I can remember it more easily.
-- As a learner, I want to compare my answer with the correct sentence so I can learn from mistakes.
-- As a learner, I want to tag a sentence with a grammar topic so I can review by pattern.
-- As a learner, I want weak sentences to be easier to revisit so I can improve over time.
-- As a learner, I want to add my own sentences and audio so I can practice personalized content.
+### A.8 V1 features (summary)
 
----
+| Area | Description |
+|------|-------------|
+| **Vocabulary library** | List/detail of words from seed; filters; optional favorites. |
+| **Word card** | Headword, POS badge, EN/ZH glosses, example FR (+ EN), type-specific module (as designed). |
+| **Audio** | Play headword/example audio when assets or TTS exist; optional in v1. |
+| **Study log** | Simple history / bookmarks / weak list; **not** full SRS in v1. |
 
-### 8. MVP Features
+### A.9 V1 primary screens (suggested)
 
-## 8.1 Sentence Dictation Practice
+- **Vocabulary** — library + word card detail.
+- **Study log** — recent activity, saved/weak items (exact metrics TBD; keep simple).
 
-**Description:**  
-Users see one sentence card at a time, play audio, and type what they hear.
+*(A **Dictation** tab is a Version 2 addition; v1 may omit it or show a short “Coming in v2” placeholder if useful.)*
 
-**Requirements:**
-- show one sentence per practice screen
-- play sentence audio
-- provide text field for answer input
-- submit answer manually
-- reveal correct answer after submission
+### A.10 V1 data model (SwiftData — indicative)
 
-**Success condition:**  
-User can complete one dictation attempt in under 1 minute.
+Names are illustrative; adjust in implementation.
+
+- **WordEntry** (or **Lexeme**): id, frenchLemma, posTags, englishGloss, chineseGloss, exampleFrench, exampleEnglish, frequency metadata, thematic tag, wordType enum (noun | verb | adjective | other).
+- **NounCardFields** (embedded or related): gender, articles, plural form, plural type — when applicable.
+- **VerbCardFields** / **AdjectiveCardFields** — per card-type supplements.
+- **StudyLogEntry** (light): word id, lastOpenedAt, optional simple flag or score.
+
+Consolidate or split models for maintainability; avoid duplicating full sentence dictation fields until v2.
+
+### A.11 V1 success metrics (examples)
+
+- User opens a word card and reads example within **2 minutes** of launch.
+- User can **find a word** by type/theme without confusion (target: **≥80%** success in usability tests).
+- Users return to **Study log** or saved words multiple times per week (directional).
 
 ---
 
-## 8.2 Image Support for Contextual Memory
+# Part B — Version 2 (planned): Sentence dictation + grammar
 
-**Description:**  
-Each sentence may optionally include an image to support memory and context.
+Version 2 adds **sentence-level dictation** (the core loop described in earlier PRD drafts) and **grammar** affordances. It builds on v1 content: **example sentences** can become **dictation prompts**; **grammar topics** can link to sentences and practice.
 
-**Requirements:**
-- sentence card can display one image
-- image is optional, not required
-- image appears above or near the sentence area
+### B.1 Purpose
 
-**Reason for MVP:**  
-Adds memory support without increasing workflow complexity.
+Extend motifly so users **listen to a French sentence, type what they hear**, get **basic correctness feedback**, and **organize review** by grammar and difficulty. Optional **Grammar** tab or section surfaces topics and linked practice.
 
----
+### B.2 Goals (v2)
 
-## 8.3 Audio Playback
+- Sentence-based **dictation**: audio → typed answer → check against reference French.
+- **Grammar tags / topics** on sentences; filter review and (later) browse by topic.
+- **User-created sentences** (optional): add text, image, audio, tags — local-first.
+- **Richer study log** tied to **sentence attempts**; foundation for **SRS-style** scheduling in a later iteration (see Part C).
 
-**Description:**  
-Users can listen to the correct French pronunciation for each sentence.
+### B.3 Version 2 scope (high level)
 
-**Requirements:**
-- each sentence has playable audio
-- app supports API-provided audio URL or stored local audio file
-- user can replay audio multiple times
+**In scope (representative)**
 
-**MVP simplification:**  
-No advanced speed control required for first version.
+- Sentence dictation practice flow (one sentence per screen).
+- Audio playback; text input; submit; show correct vs user answer (exact match for MVP of dictation).
+- Grammar tag(s) per sentence; filter library/review by tag.
+- Retrieval or mastery **score per sentence** (simple formula acceptable).
+- Sentence progress: attempts, correct count, last attempted, weak-first sorting.
+- Optional image per sentence for memory.
 
----
+**Still out of scope for v2 unless explicitly pulled in**
 
-## 8.4 User-Created Sentences and Audio
+- Deep AI feedback, pronunciation scoring, cloud sync (can remain deferred).
 
-**Description:**  
-Users can create their own sentence cards.
+### B.4 Sentence dictation features (detail)
 
-**Requirements:**
-- create a sentence
-- optionally attach an image
-- optionally add a grammar tag
-- optionally record audio using device microphone
-- save locally with SwiftData
+#### B.4.1 Practice
 
-**MVP simplification:**  
-No sharing or cloud sync in MVP.
+- One sentence per screen; play audio; type answer; submit; reveal correct line after submit.
 
----
+#### B.4.2 Media
 
-## 8.5 Basic Answer Checking
+- Optional image on sentence card; audio from URL or bundled file; replay allowed.
 
-**Description:**  
-After user submits an answer, app compares it with the correct sentence.
+#### B.4.3 User-created content
 
-**Requirements:**
-- show correct sentence
-- show user answer
-- indicate whether answer is correct or not
-- store result as correct or incorrect
+- Add sentence, optional image, optional recording, optional grammar tags; SwiftData/local.
 
-**MVP simplification:**  
-No complex partial grading at first.  
-Optional basic metric:
-- exact correct
-- incorrect
+#### B.4.4 Answer checking
 
----
+- Start with **exact match** (or documented normalization); show correct / incorrect.
 
-## 8.6 Grammar Tag System
+#### B.4.5 Grammar tags
 
-**Description:**  
-Each sentence can have one or more grammar tags for grouping.
+- Manual labels (e.g. passé composé, negation); filter lists by tag.
 
-**Examples:**
-- passé composé
-- imparfait
-- articles
-- subjunctive
-- negation
+#### B.4.6 Retrieval score (sentence-level)
 
-**Requirements:**
-- sentence can store tags
-- user can filter review list by tag
+- Simple rule (e.g. +1 / -1 on correctness, floor at 0); sort weak sentences first.
 
-**MVP simplification:**  
-Tags are manual labels only. No grammar detection needed.
+#### B.4.7 Progress and logs (sentence-level)
 
----
+- Last attempted, total attempts, correct count, retrieval score; detail screen per sentence.
 
-## 8.7 Retrieval Score
+### B.5 V2 primary screens (additions)
 
-**Description:**  
-Each sentence has a simple score showing how well the user remembers it.
+- **Dictation** — start practice, practice screen, result screen.
+- **Sentence library** — sentences available for dictation (curated + user-created).
+- **Grammar** (optional tab or hub) — topics and links into practice (align with [database_schema.md](database_schema.md) `grammar_topics` when using server-side schema).
 
-**Purpose:**  
-Help surface weak sentences for later review.
+### B.6 V2 data model extensions (indicative)
 
-**Simple MVP logic example:**
-- start at 0
-- +1 when correct
-- -1 when incorrect
-- minimum 0
-- higher score means stronger memory
+Extends v1 toward [database_schema.md](database_schema.md):
 
-**Requirements:**
-- each sentence stores retrieval score
-- score updates after each attempt
-- review page can sort low-score sentences first
+- **Sentence**: frenchText (reference for scoring), englishText, chineseText, difficulty, audio/image keys, source (system vs user).
+- **GrammarTopic** + sentence–topic relations.
+- **AttemptLog** per sentence: user input, scores, timestamps.
+- **SentenceProgress** aggregates.
 
-**MVP simplification:**  
-Do not build a complicated spaced repetition algorithm yet.
+Word-level v1 models can **reference** the same example sentence when promoting a line to a dictation `Sentence` entity.
+
+### B.7 V2 core flows
+
+**Dictation practice**
+
+1. User starts dictation.  
+2. App shows one sentence card.  
+3. User plays audio, types, submits.  
+4. App shows correctness and updates sentence progress.
+
+**Review weak sentences**
+
+1. User opens review list sorted by low score.  
+2. User practices weak items first.
 
 ---
 
-## 8.8 Progress and Review Logs
+# Part C — Future (post–v2 directions)
 
-**Description:**  
-Users can see basic history for each sentence.
+Not committed scope; informs architecture.
 
-**Requirements:**
-- store last attempted date
-- store total attempts
-- store total correct count
-- show retrieval score
-- show sentence history summary on detail page
-
-**MVP simplification:**  
-No charts required in first version.
+- **Grammar tab (full)**: dedicated browse/learn experience for grammar topics and example sentences (beyond tags only).
+- **Spaced repetition (SRS)**: evolve **Study log** with scheduling (intervals, next review, notifications), likely using **attempt history** as input.
+- Partial error highlighting, AI explanations, cloud sync, streaks, pronunciation — as separate initiatives.
 
 ---
 
-### 9. Primary Screens
+# Shared requirements
 
-## 9.1 Home
-Shows:
-- start practice
-- review weak sentences
-- browse sentence library
-- add sentence
+### Non-functional
 
-## 9.2 Practice Screen
-Shows:
-- optional image
-- audio play button
-- text input area
-- submit button
-- reveal correct answer after submit
+- Simple, responsive UI; few taps to core actions.
+- Local-first persistence (SwiftData v1; optional backend later).
+- Calm, distraction-free interface.
+- No forced account in early versions.
 
-## 9.3 Result Screen
-Shows:
-- user answer
-- correct sentence
-- correct / incorrect result
-- updated retrieval score
-- next sentence button
+### Risks
 
-## 9.4 Sentence Library
-Shows:
-- list of saved sentences
-- grammar tags
-- retrieval score
-- filter by tag
-
-## 9.5 Add Sentence Screen
-Allows user to:
-- enter sentence text
-- assign grammar tags
-- add image
-- record audio
-- save sentence
-
-## 9.6 Sentence Detail / Review Screen
-Shows:
-- sentence text
-- image
-- audio
-- retrieval score
-- attempt count
-- correct count
-- last reviewed date
+- **Scope creep** between v1 (words) and v2 (sentences): keep v1 shippable without dictation.
+- Audio costs/API complexity in v2.
+- **SRS** complexity: defer algorithms until Study log has stable usage data.
 
 ---
 
-### 10. Data Model
+# Document summary
 
-## Sentence
-- id
-- frenchText
-- imagePath optional
-- audioPathOrURL optional
-- createdByUser
-- createdAt
-- updatedAt
+| Phase | What motifly is |
+|-------|------------------|
+| **v1** | A **vocabulary-first** app: word cards, glosses, examples, light study log — optimized for words and forms. |
+| **v2** | Adds **sentence dictation**, **grammar tagging**, **sentence progress**, and richer review — the sentence-centric experience. |
+| **Later** | Grammar hub, **SRS**, analytics, sync — as needed. |
 
-## GrammarTag
-- id
-- name
-
-## SentenceTagRelation
-- sentenceId
-- tagId
-
-## AttemptLog
-- id
-- sentenceId
-- userAnswer
-- isCorrect
-- attemptedAt
-
-## SentenceProgress
-- sentenceId
-- retrievalScore
-- totalAttempts
-- totalCorrect
-- lastAttemptedAt
-
-For MVP, SentenceProgress can also be stored directly on Sentence if you want fewer models.
-
----
-
-### 11. Core User Flow
-
-**Practice flow**
-1. user taps Start Practice
-2. app shows one sentence card
-3. user plays audio
-4. user types answer
-5. user submits
-6. app shows correct answer and correctness
-7. app updates retrieval score and progress
-8. user moves to next sentence
-
-**Creation flow**
-1. user taps Add Sentence
-2. enters sentence text
-3. optionally adds image
-4. optionally records audio
-5. optionally adds tags
-6. saves sentence
-
-**Review flow**
-1. user opens Review Weak Sentences
-2. app sorts by lowest retrieval score
-3. user practices weak items first
-
----
-
-### 12. Functional Requirements
-
-## Practice
-- user can play sentence audio
-- user can input typed answer
-- user can submit answer
-- system stores the result
-
-## Content
-- user can browse saved sentences
-- user can add a sentence manually
-- user can attach one image to a sentence
-- user can record one audio file for a sentence
-
-## Organization
-- user can add grammar tags to a sentence
-- user can filter sentence list by grammar tag
-
-## Progress
-- system tracks attempts per sentence
-- system tracks correct count per sentence
-- system tracks last reviewed date
-- system updates retrieval score after each attempt
-
----
-
-### 13. Non-Functional Requirements
-
-- app should feel simple and responsive
-- core actions should take no more than a few taps
-- data should persist locally using SwiftData
-- UI should be clean and distraction-free
-- app should work without account creation
-- app should support future expansion later
-
----
-
-### 14. Success Metrics for MVP
-
-- user can complete first dictation within 2 minutes of opening app
-- user can add a custom sentence in under 1 minute
-- at least 80 percent of key flows work without confusion:
-  - start practice
-  - submit answer
-  - review sentence
-  - add sentence
-- users return to review weak sentences multiple times per week
-
----
-
-### 15. Risks and Simplifications
-
-## Risks
-- answer checking can become too complex if partial matching is added too early
-- audio generation API may add cost and implementation complexity
-- too many stats may distract from the main experience
-
-## Simplifications
-- use exact-match correctness for MVP
-- keep retrieval score logic simple
-- skip AI feedback in first version
-- skip cloud sync
-- skip advanced grammar analysis
-
----
-
-### 16. Future Expansion After MVP
-
-Not part of MVP, but good next steps:
-- partial error highlighting
-- AI explanation of mistakes
-- spaced repetition scheduling
-- pronunciation comparison
-- curated sentence packs
-- daily goals and streaks
-- cloud sync across devices
-- smarter grammar analytics
-
----
-
-### 17. MVP Summary
-
-**motifly MVP** is a lightweight French dictation app centered on:
-
-- one sentence at a time
-- audio-based listening practice
-- simple typed dictation
-- optional image memory support
-- basic progress tracking
-- weak sentence review
-- manual grammar grouping
-- custom sentence creation
-
-The MVP should stay narrow, calm, and useful rather than feature-heavy.
+The v1 app should stay **narrow and calm**; v2 adds **listening + typing** at sentence level without discarding v1 word data.

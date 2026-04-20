@@ -1,0 +1,335 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BF01 /* MotiflyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR01 /* MotiflyApp.swift */; };
+		BF02 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR02 /* ContentView.swift */; };
+		BF03 /* VocabularyEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR03 /* VocabularyEntry.swift */; };
+		BF04 /* SearchHistoryEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR04 /* SearchHistoryEntry.swift */; };
+		BF05 /* CSVImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR05 /* CSVImportService.swift */; };
+		BF06 /* DictationNormalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR06 /* DictationNormalization.swift */; };
+		BF07 /* SearchHistoryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR07 /* SearchHistoryService.swift */; };
+		BF08 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR08 /* HomeView.swift */; };
+		BF09 /* VocabularyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR09 /* VocabularyView.swift */; };
+		BF0A /* DictationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0A /* DictationView.swift */; };
+		BF0B /* DictationSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0B /* DictationSessionView.swift */; };
+		BF0F /* NounWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0F /* NounWordCardView.swift */; };
+		BF0E /* DictationProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0E /* DictationProgressStore.swift */; };
+		BF0C /* seed_nouns.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR0C /* seed_nouns.csv */; };
+		BF0D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR0D /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		FR00 /* Motifly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Motifly.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FR01 /* MotiflyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiflyApp.swift; sourceTree = "<group>"; };
+		FR02 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		FR03 /* VocabularyEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyEntry.swift; sourceTree = "<group>"; };
+		FR04 /* SearchHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistoryEntry.swift; sourceTree = "<group>"; };
+		FR05 /* CSVImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVImportService.swift; sourceTree = "<group>"; };
+		FR06 /* DictationNormalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationNormalization.swift; sourceTree = "<group>"; };
+		FR07 /* SearchHistoryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistoryService.swift; sourceTree = "<group>"; };
+		FR08 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		FR09 /* VocabularyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyView.swift; sourceTree = "<group>"; };
+		FR0A /* DictationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationView.swift; sourceTree = "<group>"; };
+		FR0B /* DictationSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationSessionView.swift; sourceTree = "<group>"; };
+		FR0F /* NounWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NounWordCardView.swift; sourceTree = "<group>"; };
+		FR0E /* DictationProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationProgressStore.swift; sourceTree = "<group>"; };
+		FR0C /* seed_nouns.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_nouns.csv; sourceTree = "<group>"; };
+		FR0D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FWP1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		G000 = {
+			isa = PBXGroup;
+			children = (
+				G001 /* Motifly */,
+				G002 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		G001 /* Motifly */ = {
+			isa = PBXGroup;
+			children = (
+				FR01 /* MotiflyApp.swift */,
+				FR02 /* ContentView.swift */,
+				G003 /* Models */,
+				G004 /* Services */,
+				G005 /* Views */,
+				FR0C /* seed_nouns.csv */,
+				FR0D /* Assets.xcassets */,
+			);
+			path = Motifly;
+			sourceTree = "<group>";
+		};
+		G002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FR00 /* Motifly.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		G003 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				FR03 /* VocabularyEntry.swift */,
+				FR04 /* SearchHistoryEntry.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		G004 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				FR05 /* CSVImportService.swift */,
+				FR06 /* DictationNormalization.swift */,
+				FR07 /* SearchHistoryService.swift */,
+				FR0E /* DictationProgressStore.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		G005 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				FR08 /* HomeView.swift */,
+				FR09 /* VocabularyView.swift */,
+				FR0A /* DictationView.swift */,
+				FR0B /* DictationSessionView.swift */,
+				FR0F /* NounWordCardView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		NT01 /* Motifly */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BCL1 /* Build configuration list for PBXNativeTarget "Motifly" */;
+			buildPhases = (
+				SRC1 /* Sources */,
+				FWP1 /* Frameworks */,
+				RES1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Motifly;
+			productName = Motifly;
+			productReference = FR00 /* Motifly.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PJ01 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					NT01 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = BCL0 /* Build configuration list for PBXProject "Motifly" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = G000;
+			productRefGroup = G002 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				NT01 /* Motifly */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		RES1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0C /* seed_nouns.csv in Resources */,
+				BF0D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		SRC1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF01 /* MotiflyApp.swift in Sources */,
+				BF02 /* ContentView.swift in Sources */,
+				BF03 /* VocabularyEntry.swift in Sources */,
+				BF04 /* SearchHistoryEntry.swift in Sources */,
+				BF05 /* CSVImportService.swift in Sources */,
+				BF06 /* DictationNormalization.swift in Sources */,
+				BF07 /* SearchHistoryService.swift in Sources */,
+				BF08 /* HomeView.swift in Sources */,
+				BF09 /* VocabularyView.swift in Sources */,
+				BF0A /* DictationView.swift in Sources */,
+				BF0B /* DictationSessionView.swift in Sources */,
+				BF0F /* NounWordCardView.swift in Sources */,
+				BF0E /* DictationProgressStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BC01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BC02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BC03 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Motifly;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.motifly.Motifly;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BC04 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Motifly;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.motifly.Motifly;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BCL0 /* Build configuration list for PBXProject "Motifly" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC01 /* Debug */,
+				BC02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BCL1 /* Build configuration list for PBXNativeTarget "Motifly" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC03 /* Debug */,
+				BC04 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PJ01 /* Project object */;
+}
