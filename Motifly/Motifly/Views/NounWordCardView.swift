@@ -7,6 +7,8 @@ struct NounWordCardView: View {
     @Bindable var entry: VocabularyEntry
     @Environment(\.modelContext) private var modelContext
 
+    @StateObject private var mineCoordinator = MineRecordingCoordinator()
+
     @State private var articlePluralExpanded = true
     @State private var memoryExpanded = false
     @State private var memoryNote: String = ""
@@ -48,6 +50,13 @@ struct NounWordCardView: View {
         .onAppear {
             SearchHistoryService.recordSearch(modelContext: modelContext, seedNumber: entry.seedNumber)
             memoryNote = UserDefaults.standard.string(forKey: memoryKey) ?? ""
+            mineCoordinator.configure(seedNumber: entry.seedNumber)
+        }
+        .onChange(of: entry.seedNumber) { _, new in
+            mineCoordinator.configure(seedNumber: new)
+        }
+        .onDisappear {
+            mineCoordinator.tearDownOnLeave()
         }
     }
 
@@ -68,7 +77,7 @@ struct NounWordCardView: View {
             HStack(alignment: .top, spacing: 12) {
                 Text("📖")
                     .font(.title)
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text(entry.frenchLemma)
                         .font(.largeTitle.weight(.bold))
                         .foregroundStyle(lemmaDisplayColor)
@@ -86,15 +95,65 @@ struct NounWordCardView: View {
                         }
                         .buttonStyle(.bordered)
                         .tint(.secondary)
+
                         Button {
-                            // Recording hook for a later milestone.
+                            mineCoordinator.playMine()
                         } label: {
                             Label("Mine", systemImage: "mic.fill")
                                 .font(.caption.weight(.semibold))
                         }
-                        .buttonStyle(.bordered)
-                        .tint(.secondary)
-                        .disabled(true)
+                        .buttonStyle(.borderedProminent)
+                        .tint(.accentColor)
+                        .disabled(!mineCoordinator.hasMineRecording)
+
+                        Button {
+                            Task { await mineCoordinator.toggleRecording() }
+                        } label: {
+                            Image(systemName: mineCoordinator.isRecording ? "stop.circle.fill" : "record.circle")
+                                .font(.title2)
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(mineCoordinator.isRecording ? Color.red : Color.accentColor, Color.primary)
+                        }
+                        .accessibilityLabel(mineCoordinator.isRecording ? "Stop recording" : "Record my pronunciation")
+                    }
+
+                    if mineCoordinator.isRecording {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 8, height: 8)
+                            Text("Recording…")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.red)
+                        }
+                    }
+
+                    if mineCoordinator.awaitingSaveConfirmation {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Save this take as your Mine pronunciation?")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Button {
+                                mineCoordinator.playPendingRecording()
+                            } label: {
+                                Label("Replay take", systemImage: "play.circle.fill")
+                                    .font(.subheadline.weight(.semibold))
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.accentColor)
+                            HStack(spacing: 12) {
+                                Button("Save to Mine") {
+                                    mineCoordinator.confirmSaveMine()
+                                }
+                                .buttonStyle(.borderedProminent)
+
+                                Button("Discard", role: .cancel) {
+                                    mineCoordinator.discardPendingRecording()
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        }
+                        .padding(.top, 4)
                     }
                 }
             }

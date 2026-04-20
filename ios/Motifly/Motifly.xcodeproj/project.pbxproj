@@ -20,6 +20,7 @@
 		BF0B /* DictationSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0B /* DictationSessionView.swift */; };
 		BF0F /* NounWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0F /* NounWordCardView.swift */; };
 		BF0E /* DictationProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0E /* DictationProgressStore.swift */; };
+		BF10 /* MinePronunciationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR10 /* MinePronunciationService.swift */; };
 		BF0C /* seed_nouns.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR0C /* seed_nouns.csv */; };
 		BF0D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR0D /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -39,6 +40,7 @@
 		FR0B /* DictationSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationSessionView.swift; sourceTree = "<group>"; };
 		FR0F /* NounWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NounWordCardView.swift; sourceTree = "<group>"; };
 		FR0E /* DictationProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationProgressStore.swift; sourceTree = "<group>"; };
+		FR10 /* MinePronunciationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinePronunciationService.swift; sourceTree = "<group>"; };
 		FR0C /* seed_nouns.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_nouns.csv; sourceTree = "<group>"; };
 		FR0D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -100,6 +102,7 @@
 				FR06 /* DictationNormalization.swift */,
 				FR07 /* SearchHistoryService.swift */,
 				FR0E /* DictationProgressStore.swift */,
+				FR10 /* MinePronunciationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -199,6 +202,7 @@
 				BF0B /* DictationSessionView.swift in Sources */,
 				BF0F /* NounWordCardView.swift in Sources */,
 				BF0E /* DictationProgressStore.swift in Sources */,
+				BF10 /* MinePronunciationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,6 +265,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Motifly;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Motifly records your pronunciation so you can play it back with Mine.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -290,6 +295,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Motifly;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Motifly records your pronunciation so you can play it back with Mine.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
