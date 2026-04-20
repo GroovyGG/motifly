@@ -14,6 +14,7 @@ struct VocabularyView: View {
         return entries.filter {
             $0.frenchLemma.localizedCaseInsensitiveContains(q)
                 || $0.english.localizedCaseInsensitiveContains(q)
+                || ($0.chineseExplanation ?? "").localizedCaseInsensitiveContains(q)
         }
     }
 
@@ -27,10 +28,11 @@ struct VocabularyView: View {
             if !searchText.isEmpty {
                 Section("Results") {
                     ForEach(filtered, id: \.seedNumber) { e in
-                        row(e)
-                            .onTapGesture {
-                                SearchHistoryService.recordSearch(modelContext: modelContext, seedNumber: e.seedNumber)
-                            }
+                        NavigationLink {
+                            NounWordCardView(entry: e)
+                        } label: {
+                            row(e)
+                        }
                     }
                 }
             }
@@ -41,10 +43,11 @@ struct VocabularyView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(recentFifty, id: \.seedNumber) { e in
-                        row(e)
-                            .onTapGesture {
-                                SearchHistoryService.recordSearch(modelContext: modelContext, seedNumber: e.seedNumber)
-                            }
+                        NavigationLink {
+                            NounWordCardView(entry: e)
+                        } label: {
+                            row(e)
+                        }
                     }
                 }
             }

@@ -3,6 +3,8 @@ import SwiftData
 
 @main
 struct MotiflyApp: App {
+    @StateObject private var dictationProgress = DictationProgressStore()
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             VocabularyEntry.self,
@@ -35,6 +37,7 @@ struct MotiflyApp: App {
             }
             .modelContainer(sharedModelContainer)
             .environment(\.modelContext, sharedModelContainer.mainContext)
+            .environmentObject(dictationProgress)
         }
     }
 }

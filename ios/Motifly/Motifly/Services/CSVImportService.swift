@@ -2,7 +2,11 @@ import Foundation
 import SwiftData
 
 enum CSVImportService {
-    private static let importFlagKey = "motifly.csvImport.v1.done"
+    /// Noun seed from `seed_nouns.csv` (replaces older `french_5000` bundle).
+    private static let importFlagKey = "motifly.csvImport.seedNouns.v2.done"
+    private static let legacyImportFlagKey = "motifly.csvImport.v1.done"
+
+    private static let bundledCSVName = "seed_nouns"
 
     static var needsImport: Bool {
         !UserDefaults.standard.bool(forKey: importFlagKey)
@@ -10,16 +14,21 @@ enum CSVImportService {
 
     private static func markImportFinished() {
         UserDefaults.standard.set(true, forKey: importFlagKey)
+        UserDefaults.standard.removeObject(forKey: legacyImportFlagKey)
     }
 
     /// Loads and parses CSV off the main actor, then inserts in batches so the UI can render.
     static func importIfNeededAsync(modelContext: ModelContext) async {
         guard needsImport else { return }
 
-        guard let url = Bundle.main.url(forResource: "french_5000", withExtension: "csv") else {
-            print("CSVImportService: french_5000.csv not in bundle — marking import finished to avoid a stuck launch")
+        guard let url = Bundle.main.url(forResource: bundledCSVName, withExtension: "csv") else {
+            print("CSVImportService: \(bundledCSVName).csv not in bundle — marking import finished to avoid a stuck launch")
             markImportFinished()
             return
+        }
+
+        await MainActor.run {
+            deleteAllVocabularyEntries(modelContext: modelContext)
         }
 
         let rows: [ParsedCSVRow] = await Task.detached(priority: .userInitiated) {
@@ -47,7 +56,12 @@ enum CSVImportService {
                         pos: row.pos,
                         thematic: row.thematic,
                         exampleFrench: row.exampleFrench,
-                        exampleEnglish: row.exampleEnglish
+                        exampleEnglish: row.exampleEnglish,
+                        chineseExplanation: row.chineseExplanation,
+                        genderCode: row.genderCode,
+                        lemmaArticle: row.lemmaArticle,
+                        pluralForm: row.pluralForm,
+                        pluralType: row.pluralType
                     )
                     modelContext.insert(entry)
                     inserted += 1
@@ -66,11 +80,21 @@ enum CSVImportService {
             do {
                 try modelContext.save()
                 markImportFinished()
-                print("CSVImportService: imported \(inserted) rows")
+                print("CSVImportService: imported \(inserted) rows from \(bundledCSVName).csv")
             } catch {
                 print("CSVImportService final save error: \(error)")
             }
         }
+    }
+
+    @MainActor
+    private static func deleteAllVocabularyEntries(modelContext: ModelContext) {
+        let descriptor = FetchDescriptor<VocabularyEntry>()
+        guard let all = try? modelContext.fetch(descriptor) else { return }
+        for entry in all {
+            modelContext.delete(entry)
+        }
+        try? modelContext.save()
     }
 
     private struct ParsedCSVRow {
@@ -81,6 +105,11 @@ enum CSVImportService {
         let thematic: String
         let exampleFrench: String
         let exampleEnglish: String
+        let chineseExplanation: String
+        let genderCode: String
+        let lemmaArticle: String
+        let pluralForm: String
+        let pluralType: String
     }
 
     private nonisolated static func loadRows(from url: URL) -> [ParsedCSVRow] {
@@ -94,13 +123,25 @@ enum CSVImportService {
         let lines = text.split(whereSeparator: \.isNewline).map(String.init)
         guard lines.count >= 2 else { return [] }
 
+        let headerFields = parseCSVFields(lines[0]).map {
+            $0.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        guard !headerFields.isEmpty else { return [] }
+
         var out: [ParsedCSVRow] = []
         out.reserveCapacity(lines.count - 1)
 
         for line in lines.dropFirst() {
             guard !line.isEmpty else { continue }
-            guard let row = parseCSVLine(line),
-                  let num = Int(row["number"] ?? "") else { continue }
+            let fields = parseCSVFields(line)
+            guard fields.count >= headerFields.count else { continue }
+
+            var row: [String: String] = [:]
+            for (i, key) in headerFields.enumerated() where i < fields.count {
+                row[key] = fields[i]
+            }
+
+            guard let num = Int(row["number"]?.trimmingCharacters(in: .whitespaces) ?? "") else { continue }
 
             out.append(
                 ParsedCSVRow(
@@ -110,15 +151,20 @@ enum CSVImportService {
                     pos: row["pos"] ?? "",
                     thematic: row["thematic"] ?? "",
                     exampleFrench: row["example_french"] ?? "",
-                    exampleEnglish: row["example_english"] ?? ""
+                    exampleEnglish: row["example_english"] ?? "",
+                    chineseExplanation: row["chinese_explanation"] ?? "",
+                    genderCode: row["gender"] ?? "",
+                    lemmaArticle: row["lemma_article"] ?? "",
+                    pluralForm: row["plural_form"] ?? "",
+                    pluralType: row["plural_type"] ?? ""
                 )
             )
         }
         return out
     }
 
-    /// Minimal CSV parser with quote support for fields containing commas.
-    private nonisolated static func parseCSVLine(_ line: String) -> [String: String]? {
+    /// Splits one CSV line into fields (supports quoted commas).
+    private nonisolated static func parseCSVFields(_ line: String) -> [String] {
         var fields: [String] = []
         var current = ""
         var inQuotes = false
@@ -133,17 +179,6 @@ enum CSVImportService {
             }
         }
         fields.append(current)
-
-        let header = [
-            "number", "french_lemma", "thematic", "pos", "english", "example",
-            "example_french", "word count", "example_english", "range_count",
-            "frequency_raw", "range_pipe_frequency",
-        ]
-        guard fields.count >= header.count else { return nil }
-        var dict: [String: String] = [:]
-        for (i, key) in header.enumerated() where i < fields.count {
-            dict[key] = fields[i]
-        }
-        return dict
+        return fields
     }
 }

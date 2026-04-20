@@ -18,7 +18,9 @@
 		BF09 /* VocabularyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR09 /* VocabularyView.swift */; };
 		BF0A /* DictationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0A /* DictationView.swift */; };
 		BF0B /* DictationSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0B /* DictationSessionView.swift */; };
-		BF0C /* french_5000.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR0C /* french_5000.csv */; };
+		BF0F /* NounWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0F /* NounWordCardView.swift */; };
+		BF0E /* DictationProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0E /* DictationProgressStore.swift */; };
+		BF0C /* seed_nouns.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR0C /* seed_nouns.csv */; };
 		BF0D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR0D /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -35,7 +37,9 @@
 		FR09 /* VocabularyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyView.swift; sourceTree = "<group>"; };
 		FR0A /* DictationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationView.swift; sourceTree = "<group>"; };
 		FR0B /* DictationSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationSessionView.swift; sourceTree = "<group>"; };
-		FR0C /* french_5000.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = french_5000.csv; sourceTree = "<group>"; };
+		FR0F /* NounWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NounWordCardView.swift; sourceTree = "<group>"; };
+		FR0E /* DictationProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationProgressStore.swift; sourceTree = "<group>"; };
+		FR0C /* seed_nouns.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_nouns.csv; sourceTree = "<group>"; };
 		FR0D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -66,7 +70,7 @@
 				G003 /* Models */,
 				G004 /* Services */,
 				G005 /* Views */,
-				FR0C /* french_5000.csv */,
+				FR0C /* seed_nouns.csv */,
 				FR0D /* Assets.xcassets */,
 			);
 			path = Motifly;
@@ -95,6 +99,7 @@
 				FR05 /* CSVImportService.swift */,
 				FR06 /* DictationNormalization.swift */,
 				FR07 /* SearchHistoryService.swift */,
+				FR0E /* DictationProgressStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -106,6 +111,7 @@
 				FR09 /* VocabularyView.swift */,
 				FR0A /* DictationView.swift */,
 				FR0B /* DictationSessionView.swift */,
+				FR0F /* NounWordCardView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -168,7 +174,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF0C /* french_5000.csv in Resources */,
+				BF0C /* seed_nouns.csv in Resources */,
 				BF0D /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -191,6 +197,8 @@
 				BF09 /* VocabularyView.swift in Sources */,
 				BF0A /* DictationView.swift in Sources */,
 				BF0B /* DictationSessionView.swift in Sources */,
+				BF0F /* NounWordCardView.swift in Sources */,
+				BF0E /* DictationProgressStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

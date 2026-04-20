@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct DictationSessionView: View {
+    @EnvironmentObject private var dictationProgress: DictationProgressStore
+
     let unitIndex: Int
     let words: [VocabularyEntry]
 
@@ -37,6 +39,17 @@ struct DictationSessionView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             wordCount = min(10, max(1, words.count))
+        }
+        .onChange(of: sessionDone) { _, done in
+            if done {
+                let total = correct + wrong
+                dictationProgress.completeSession(unitIndex: unitIndex, correct: correct, total: total)
+            }
+        }
+        .onDisappear {
+            if !sessionDone {
+                dictationProgress.abandonSession(unitIndex: unitIndex)
+            }
         }
     }
 
@@ -145,4 +158,5 @@ struct DictationSessionView: View {
             words: []
         )
     }
+    .environmentObject(DictationProgressStore())
 }
