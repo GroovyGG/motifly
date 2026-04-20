@@ -159,7 +159,17 @@ final class MineRecordingCoordinator: NSObject, ObservableObject {
         recorder?.stop()
         recorder = nil
         isRecording = false
-        awaitingSaveConfirmation = tempRecordingURL != nil
+        if let temp = tempRecordingURL {
+            if Self.isPlayableAudioFile(at: temp) {
+                awaitingSaveConfirmation = true
+            } else {
+                try? FileManager.default.removeItem(at: temp)
+                tempRecordingURL = nil
+                awaitingSaveConfirmation = false
+            }
+        } else {
+            awaitingSaveConfirmation = false
+        }
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 
@@ -167,10 +177,13 @@ final class MineRecordingCoordinator: NSObject, ObservableObject {
         guard hasMineRecording else { return }
         stopPlayback()
         do {
-            try configureAudioSessionForPlayback()
             let url = try MinePronunciationStorage.fileURL(seedNumber: seedNumber)
-            playbackPlayer = try AVAudioPlayer(contentsOf: url)
-            playbackPlayer?.prepareToPlay()
+            guard Self.isPlayableAudioFile(at: url) else { return }
+            try configureAudioSessionForPlayback()
+            let player = try AVAudioPlayer(contentsOf: url)
+            guard player.duration > 0 else { return }
+            player.prepareToPlay()
+            playbackPlayer = player
             playbackPlayer?.play()
         } catch {
             print("MineRecordingCoordinator play error: \(error)")
@@ -181,12 +194,14 @@ final class MineRecordingCoordinator: NSObject, ObservableObject {
     func playPendingRecording() {
         guard awaitingSaveConfirmation,
               let url = tempRecordingURL,
-              FileManager.default.fileExists(atPath: url.path) else { return }
+              Self.isPlayableAudioFile(at: url) else { return }
         stopPlayback()
         do {
             try configureAudioSessionForPlayback()
-            playbackPlayer = try AVAudioPlayer(contentsOf: url)
-            playbackPlayer?.prepareToPlay()
+            let player = try AVAudioPlayer(contentsOf: url)
+            guard player.duration > 0 else { return }
+            player.prepareToPlay()
+            playbackPlayer = player
             playbackPlayer?.play()
         } catch {
             print("MineRecordingCoordinator play pending error: \(error)")
@@ -216,6 +231,21 @@ final class MineRecordingCoordinator: NSObject, ObservableObject {
                 cont.resume(returning: granted)
             }
         }
+    }
+
+    /// Avoids `AVAudioBuffer` / engine warnings from zero-length or uncommitted files (e.g. instant stop).
+    private static func isPlayableAudioFile(at url: URL) -> Bool {
+        guard FileManager.default.fileExists(atPath: url.path) else { return false }
+        let size: UInt64
+        if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+           let n = attrs[.size] as? NSNumber {
+            size = n.uint64Value
+        } else {
+            return false
+        }
+        guard size > 256 else { return false }
+        guard let player = try? AVAudioPlayer(contentsOf: url) else { return false }
+        return player.duration > 0
     }
 }
 
