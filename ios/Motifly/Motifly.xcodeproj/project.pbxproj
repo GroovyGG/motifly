@@ -18,13 +18,17 @@
 		BF09 /* VocabularyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR09 /* VocabularyView.swift */; };
 		BF0A /* DictationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0A /* DictationView.swift */; };
 		BF0B /* DictationSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0B /* DictationSessionView.swift */; };
-		BF0F /* NounWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0F /* NounWordCardView.swift */; };
-		BF0E /* DictationProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0E /* DictationProgressStore.swift */; };
-		BF10 /* MinePronunciationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR10 /* MinePronunciationService.swift */; };
 		BF0C /* seed_nouns.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR0C /* seed_nouns.csv */; };
-		BF11 /* seed_verbs.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR11 /* seed_verbs.csv */; };
 		BF0D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR0D /* Assets.xcassets */; };
+		BF0E /* DictationProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0E /* DictationProgressStore.swift */; };
+		BF0F /* NounWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0F /* NounWordCardView.swift */; };
+		BF10 /* MinePronunciationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR10 /* MinePronunciationService.swift */; };
+		BF11 /* seed_verbs.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR11 /* seed_verbs.csv */; };
 		BF12 /* VerbWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR12 /* VerbWordCardView.swift */; };
+		BF13 /* AdjectiveWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR13 /* AdjectiveWordCardView.swift */; };
+		BF14 /* seed_adjectives.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR14 /* seed_adjectives.csv */; };
+		BF15 /* AdverbWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR15 /* AdverbWordCardView.swift */; };
+		BF16 /* seed_adv.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR16 /* seed_adv.csv */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,13 +44,17 @@
 		FR09 /* VocabularyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyView.swift; sourceTree = "<group>"; };
 		FR0A /* DictationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationView.swift; sourceTree = "<group>"; };
 		FR0B /* DictationSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationSessionView.swift; sourceTree = "<group>"; };
-		FR0F /* NounWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NounWordCardView.swift; sourceTree = "<group>"; };
-		FR0E /* DictationProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationProgressStore.swift; sourceTree = "<group>"; };
-		FR10 /* MinePronunciationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinePronunciationService.swift; sourceTree = "<group>"; };
 		FR0C /* seed_nouns.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_nouns.csv; sourceTree = "<group>"; };
-		FR11 /* seed_verbs.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_verbs.csv; sourceTree = "<group>"; };
 		FR0D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FR0E /* DictationProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationProgressStore.swift; sourceTree = "<group>"; };
+		FR0F /* NounWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NounWordCardView.swift; sourceTree = "<group>"; };
+		FR10 /* MinePronunciationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinePronunciationService.swift; sourceTree = "<group>"; };
+		FR11 /* seed_verbs.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_verbs.csv; sourceTree = "<group>"; };
 		FR12 /* VerbWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerbWordCardView.swift; sourceTree = "<group>"; };
+		FR13 /* AdjectiveWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjectiveWordCardView.swift; sourceTree = "<group>"; };
+		FR14 /* seed_adjectives.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_adjectives.csv; sourceTree = "<group>"; };
+		FR15 /* AdverbWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdverbWordCardView.swift; sourceTree = "<group>"; };
+		FR16 /* seed_adv.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_adv.csv; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,11 +84,20 @@
 				G003 /* Models */,
 				G004 /* Services */,
 				G005 /* Views */,
-				FR0C /* seed_nouns.csv */,
-				FR11 /* seed_verbs.csv */,
+				G006 /* SeedData */,
 				FR0D /* Assets.xcassets */,
 			);
-			path = Motifly;
+			sourceTree = "<group>";
+		};
+		G006 /* SeedData */ = {
+			isa = PBXGroup;
+			children = (
+				FR0C /* seed_nouns.csv */,
+				FR11 /* seed_verbs.csv */,
+				FR14 /* seed_adjectives.csv */,
+				FR16 /* seed_adv.csv */,
+			);
+			path = SeedData;
 			sourceTree = "<group>";
 		};
 		G002 /* Products */ = {
@@ -121,6 +138,8 @@
 				FR0B /* DictationSessionView.swift */,
 				FR0F /* NounWordCardView.swift */,
 				FR12 /* VerbWordCardView.swift */,
+				FR13 /* AdjectiveWordCardView.swift */,
+				FR15 /* AdverbWordCardView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -185,6 +204,8 @@
 			files = (
 				BF0C /* seed_nouns.csv in Resources */,
 				BF11 /* seed_verbs.csv in Resources */,
+				BF14 /* seed_adjectives.csv in Resources */,
+				BF16 /* seed_adv.csv in Resources */,
 				BF0D /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -209,6 +230,8 @@
 				BF0B /* DictationSessionView.swift in Sources */,
 				BF0F /* NounWordCardView.swift in Sources */,
 				BF12 /* VerbWordCardView.swift in Sources */,
+				BF13 /* AdjectiveWordCardView.swift in Sources */,
+				BF15 /* AdverbWordCardView.swift in Sources */,
 				BF0E /* DictationProgressStore.swift in Sources */,
 				BF10 /* MinePronunciationService.swift in Sources */,
 			);
@@ -230,9 +253,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				ONLY_ACTIVE_ARCH = YES;
@@ -269,7 +290,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 95BJE87QQD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Motifly;
@@ -299,7 +320,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 95BJE87QQD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Motifly;

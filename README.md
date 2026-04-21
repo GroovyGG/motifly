@@ -24,8 +24,8 @@ What runs in the tree **today**: a **single iOS client**, no backend service in 
 | ---- | ---------------- |
 | **UI** | SwiftUI (`TabView`: Home, Vocabulary, Dictation). |
 | **Persistence** | SwiftData over SQLite under Application Support (`VocabularyEntry`, `SearchHistoryEntry`). |
-| **Content load** | Bundled CSV seeds (`seed_nouns.csv`, `seed_verbs.csv`); `CSVImportService` imports on first launch. |
-| **Vocabulary** | Search and recent history; noun vs verb entries open `NounWordCardView` or `VerbWordCardView`. |
+| **Content load** | Bundled CSVs under `ios/Motifly/SeedData/` (copies of `data_seed/`); `CSVImportService` imports on first launch. |
+| **Vocabulary** | Search and recent history; entries open noun, verb, adjective, or adverb word cards by kind. |
 | **Dictation** | Lemma typing against English gloss; **noun entries only** (verbs use the vocabulary card flow). |
 | **Audio** | AVFoundation: French TTS for lemmas, optional user “Mine” recordings per entry. |
 
