@@ -29,6 +29,12 @@
 		BF14 /* seed_adjectives.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR14 /* seed_adjectives.csv */; };
 		BF15 /* AdverbWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR15 /* AdverbWordCardView.swift */; };
 		BF16 /* seed_adv.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR16 /* seed_adv.csv */; };
+		BF17 /* seed_determiners.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR17 /* seed_determiners.csv */; };
+		BF18 /* DeterminerWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR18 /* DeterminerWordCardView.swift */; };
+		BF19 /* seed_pronouns.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR19 /* seed_pronouns.csv */; };
+		BF1A /* PronounWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1A /* PronounWordCardView.swift */; };
+		BF1B /* seed_prepositions.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR1B /* seed_prepositions.csv */; };
+		BF1C /* PrepositionWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1C /* PrepositionWordCardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,6 +61,12 @@
 		FR14 /* seed_adjectives.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_adjectives.csv; sourceTree = "<group>"; };
 		FR15 /* AdverbWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdverbWordCardView.swift; sourceTree = "<group>"; };
 		FR16 /* seed_adv.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_adv.csv; sourceTree = "<group>"; };
+		FR17 /* seed_determiners.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_determiners.csv; sourceTree = "<group>"; };
+		FR18 /* DeterminerWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterminerWordCardView.swift; sourceTree = "<group>"; };
+		FR19 /* seed_pronouns.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_pronouns.csv; sourceTree = "<group>"; };
+		FR1A /* PronounWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PronounWordCardView.swift; sourceTree = "<group>"; };
+		FR1B /* seed_prepositions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_prepositions.csv; sourceTree = "<group>"; };
+		FR1C /* PrepositionWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrepositionWordCardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +108,9 @@
 				FR11 /* seed_verbs.csv */,
 				FR14 /* seed_adjectives.csv */,
 				FR16 /* seed_adv.csv */,
+				FR17 /* seed_determiners.csv */,
+				FR19 /* seed_pronouns.csv */,
+				FR1B /* seed_prepositions.csv */,
 			);
 			path = SeedData;
 			sourceTree = "<group>";
@@ -140,6 +155,9 @@
 				FR12 /* VerbWordCardView.swift */,
 				FR13 /* AdjectiveWordCardView.swift */,
 				FR15 /* AdverbWordCardView.swift */,
+				FR18 /* DeterminerWordCardView.swift */,
+				FR1A /* PronounWordCardView.swift */,
+				FR1C /* PrepositionWordCardView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -206,6 +224,9 @@
 				BF11 /* seed_verbs.csv in Resources */,
 				BF14 /* seed_adjectives.csv in Resources */,
 				BF16 /* seed_adv.csv in Resources */,
+				BF17 /* seed_determiners.csv in Resources */,
+				BF19 /* seed_pronouns.csv in Resources */,
+				BF1B /* seed_prepositions.csv in Resources */,
 				BF0D /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -232,6 +253,9 @@
 				BF12 /* VerbWordCardView.swift in Sources */,
 				BF13 /* AdjectiveWordCardView.swift in Sources */,
 				BF15 /* AdverbWordCardView.swift in Sources */,
+				BF18 /* DeterminerWordCardView.swift in Sources */,
+				BF1A /* PronounWordCardView.swift in Sources */,
+				BF1C /* PrepositionWordCardView.swift in Sources */,
 				BF0E /* DictationProgressStore.swift in Sources */,
 				BF10 /* MinePronunciationService.swift in Sources */,
 			);
