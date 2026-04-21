@@ -4,7 +4,12 @@ import SwiftUI
 struct DictationView: View {
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var dictationProgress: DictationProgressStore
-    @Query(sort: \VocabularyEntry.seedNumber) private var entries: [VocabularyEntry]
+    /// Dictation units use noun lemmas only (verbs use a separate card flow).
+    @Query(
+        filter: #Predicate<VocabularyEntry> { $0.entryKind == "noun" },
+        sort: \VocabularyEntry.seedNumber
+    )
+    private var entries: [VocabularyEntry]
 
     private var unitCount: Int {
         guard !entries.isEmpty else { return 0 }
