@@ -22,7 +22,9 @@
 		BF0E /* DictationProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0E /* DictationProgressStore.swift */; };
 		BF10 /* MinePronunciationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR10 /* MinePronunciationService.swift */; };
 		BF0C /* seed_nouns.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR0C /* seed_nouns.csv */; };
+		BF11 /* seed_verbs.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR11 /* seed_verbs.csv */; };
 		BF0D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR0D /* Assets.xcassets */; };
+		BF12 /* VerbWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR12 /* VerbWordCardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,7 +44,9 @@
 		FR0E /* DictationProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationProgressStore.swift; sourceTree = "<group>"; };
 		FR10 /* MinePronunciationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinePronunciationService.swift; sourceTree = "<group>"; };
 		FR0C /* seed_nouns.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_nouns.csv; sourceTree = "<group>"; };
+		FR11 /* seed_verbs.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_verbs.csv; sourceTree = "<group>"; };
 		FR0D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FR12 /* VerbWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerbWordCardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +77,7 @@
 				G004 /* Services */,
 				G005 /* Views */,
 				FR0C /* seed_nouns.csv */,
+				FR11 /* seed_verbs.csv */,
 				FR0D /* Assets.xcassets */,
 			);
 			path = Motifly;
@@ -115,6 +120,7 @@
 				FR0A /* DictationView.swift */,
 				FR0B /* DictationSessionView.swift */,
 				FR0F /* NounWordCardView.swift */,
+				FR12 /* VerbWordCardView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -178,6 +184,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF0C /* seed_nouns.csv in Resources */,
+				BF11 /* seed_verbs.csv in Resources */,
 				BF0D /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -201,6 +208,7 @@
 				BF0A /* DictationView.swift in Sources */,
 				BF0B /* DictationSessionView.swift in Sources */,
 				BF0F /* NounWordCardView.swift in Sources */,
+				BF12 /* VerbWordCardView.swift in Sources */,
 				BF0E /* DictationProgressStore.swift in Sources */,
 				BF10 /* MinePronunciationService.swift in Sources */,
 			);
