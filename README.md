@@ -6,18 +6,51 @@ French dictation practice on iPhone: listen to a sentence, type what you hear, g
 
 ## What this repo is
 
-Motifly is in **early design**. This repository holds:
+Motifly is in **active development**. This repository holds:
 
+- **`ios/Motifly/`** — SwiftUI iOS app (local-first vocabulary and dictation; see **Current architecture** below).
 - **`motifly_prd_mvp.md`** — original MVP product requirements (local-first, simpler tags).
-- **`database_schema.md`** — **v1 PostgreSQL schema** and reference DDL (learner-centric, rich attempts, full-stack direction).
+- **`database_schema.md`** — **target PostgreSQL schema** and reference DDL (learner-centric, rich attempts, full-stack direction) for a future cloud-backed phase.
 
-The **v1 engineering model** (below) goes beyond the original PRD in places: cloud backend, device-based learners, grammar as content, similarity scoring, and rollup progress. Application source (iOS app, API server) is **not** in the tree yet.
+The **target at-scale engineering model** (later section) goes beyond the original PRD: cloud backend, device-based learners, grammar as content, similarity scoring, and rollup progress. That stack is **not** implemented in the app yet; the shipped client is described under **Current architecture**.
 
 ---
 
-## v1 architecture
+## Current architecture
 
-Cloud-backed, **no user accounts in v1**. Each install is a **`learner`** identified by a stable **`device_install_id`** (Keychain / UserDefaults). The API owns data; the scoring engine computes grades; Postgres stores events and aggregates; audio and images live in **object storage**.
+What runs in the tree **today**: a **single iOS client**, no backend service in this repo. Data stays on device.
+
+| Area | Implementation |
+| ---- | ---------------- |
+| **UI** | SwiftUI (`TabView`: Home, Vocabulary, Dictation). |
+| **Persistence** | SwiftData over SQLite under Application Support (`VocabularyEntry`, `SearchHistoryEntry`). |
+| **Content load** | Bundled CSV seeds (`seed_nouns.csv`, `seed_verbs.csv`); `CSVImportService` imports on first launch. |
+| **Vocabulary** | Search and recent history; noun vs verb entries open `NounWordCardView` or `VerbWordCardView`. |
+| **Dictation** | Lemma typing against English gloss; **noun entries only** (verbs use the vocabulary card flow). |
+| **Audio** | AVFoundation: French TTS for lemmas, optional user “Mine” recordings per entry. |
+
+```mermaid
+flowchart TB
+  subgraph ios [iOS app — local only]
+    UI[SwiftUI]
+    SD[(SwiftData)]
+    Seed[Bundled CSV seeds]
+    AV[AVFoundation — speech and playback]
+  end
+  Seed --> SD
+  UI --> SD
+  AV --> UI
+```
+
+More detail for day-to-day development: [`ios/Motifly/README.md`](ios/Motifly/README.md).
+
+---
+
+## Target architecture (cloud-scale, future)
+
+This section describes the **planned** platform for when core product features are ready to move beyond a local-only client: API, Postgres, scoring service, and object storage. It is **not** the architecture of the current app.
+
+Cloud-backed, **no user accounts in the first cloud phase**. Each install is a **`learner`** identified by a stable **`device_install_id`** (Keychain / UserDefaults). The API owns data; the scoring engine computes grades; Postgres stores events and aggregates; audio and images live in **object storage**.
 
 ```mermaid
 flowchart LR
@@ -48,6 +81,8 @@ flowchart LR
 
 ## Mental model (what each layer is for)
 
+*PostgreSQL concepts for the **target** cloud platform in [`database_schema.md`](database_schema.md). The running app uses SwiftData models locally instead.*
+
 | Unit | Role |
 | ---- | ---- |
 | **Practice content** | **`sentences`** — French + English + Chinese, optional audio/image keys, difficulty, system vs user-uploaded |
@@ -61,7 +96,7 @@ Optional **`media_assets`** table tracks uploads (owner learner, storage key, MI
 
 ---
 
-## Planned tech stack
+## Planned tech stack (target platform)
 
 | Layer | Direction |
 | ----- | --------- |
@@ -73,7 +108,7 @@ Optional **`media_assets`** table tracks uploads (owner learner, storage key, MI
 
 ---
 
-## v1 scope
+## Target scope (cloud-backed product)
 
 - Backend API + PostgreSQL schema as in [`database_schema.md`](database_schema.md)
 - Sentence library with translations and grammar/content associations
@@ -82,7 +117,7 @@ Optional **`media_assets`** table tracks uploads (owner learner, storage key, MI
 - Rich attempts + versioned scoring + **`feedback_payload`**
 - Summary / weak-area UX using rollups and time-window queries on **`attempt_logs`**
 
-## Explicitly later (not v1)
+## Explicitly later (not in first cloud phase)
 
 - Accounts, Sign in with Apple, JWT/sessions
 - Social / sharing
@@ -93,7 +128,7 @@ Optional **`media_assets`** table tracks uploads (owner learner, storage key, MI
 
 ---
 
-## API sketch (`/v1`)
+## API sketch (target `/v1`)
 
 `device_install_id` is sent on bootstrap over HTTPS—**treat it like a secret** and rate-limit endpoints (no full auth yet).
 
@@ -145,7 +180,7 @@ Full column lists, constraints, indexes, and SQL DDL: **[`database_schema.md`](d
 
 ---
 
-## After v1 (growth)
+## After first cloud release (growth)
 
 1. **Auth** — `users`, link or merge `learners`, JWT or Sign in with Apple  
 2. **Trends** — `grammar_progress_daily` / `content_progress_daily`  
@@ -160,7 +195,7 @@ Full column lists, constraints, indexes, and SQL DDL: **[`database_schema.md`](d
 | File | Contents |
 | ---- | -------- |
 | [`motifly_prd_mvp.md`](motifly_prd_mvp.md) | MVP user stories, screens, original local SwiftData scope |
-| [`database_schema.md`](database_schema.md) | v1 schema, ER diagram, reference DDL, scoring boundary notes |
+| [`database_schema.md`](database_schema.md) | Target PostgreSQL schema, ER diagram, reference DDL, scoring boundary notes |
 
 ---
 
