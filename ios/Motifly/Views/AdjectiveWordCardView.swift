@@ -474,7 +474,7 @@ struct AdjectiveWordCardView: View {
         return AVSpeechSynthesisVoice.speechVoices().first { $0.language.hasPrefix("fr") }
     }
 
-    private static let headerAudioButtonSide: CGFloat = 30
+    private static let headerAudioButtonSide: CGFloat = 24
     private static let headerAudioControlOuter: CGFloat = 36
     private static let headerAudioIconFont = Font.callout
 }

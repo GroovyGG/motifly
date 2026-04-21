@@ -452,7 +452,7 @@ struct NounWordCardView: View {
     }
 
     /// Icon area inside each header audio control (keep at 30).
-    private static let headerAudioButtonSide: CGFloat = 30
+    private static let headerAudioButtonSide: CGFloat = 24
     /// Outer layout box for bordered circular buttons around `headerAudioButtonSide`.
     private static let headerAudioControlOuter: CGFloat = 36
     private static let headerAudioIconFont = Font.callout
