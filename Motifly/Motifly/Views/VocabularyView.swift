@@ -29,7 +29,7 @@ struct VocabularyView: View {
                 Section("Results") {
                     ForEach(filtered, id: \.seedNumber) { e in
                         NavigationLink {
-                            NounWordCardView(entry: e)
+                            wordCard(for: e)
                         } label: {
                             row(e)
                         }
@@ -44,7 +44,7 @@ struct VocabularyView: View {
                 } else {
                     ForEach(recentFifty, id: \.seedNumber) { e in
                         NavigationLink {
-                            NounWordCardView(entry: e)
+                            wordCard(for: e)
                         } label: {
                             row(e)
                         }
@@ -56,6 +56,15 @@ struct VocabularyView: View {
         .navigationTitle("Vocabulary")
     }
 
+    @ViewBuilder
+    private func wordCard(for e: VocabularyEntry) -> some View {
+        if e.entryKind == "verb" {
+            VerbWordCardView(entry: e)
+        } else {
+            NounWordCardView(entry: e)
+        }
+    }
+
     private func row(_ e: VocabularyEntry) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(e.frenchLemma)
@@ -63,7 +72,7 @@ struct VocabularyView: View {
             Text(e.english)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Text(e.pos)
+            Text(e.entryKind == "verb" ? "Verb · \(e.pos)" : e.pos)
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }

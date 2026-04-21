@@ -2,47 +2,111 @@ import Foundation
 import SwiftData
 
 enum CSVImportService {
-    /// Noun seed from `seed_nouns.csv` (replaces older `french_5000` bundle).
-    private static let importFlagKey = "motifly.csvImport.seedNouns.v2.done"
+    private static let nounImportFlagKey = "motifly.csvImport.seedNouns.v2.done"
+    private static let verbImportFlagKey = "motifly.csvImport.seedVerbs.v1.done"
     private static let legacyImportFlagKey = "motifly.csvImport.v1.done"
 
-    private static let bundledCSVName = "seed_nouns"
+    private static let bundledNounsName = "seed_nouns"
+    private static let bundledVerbsName = "seed_verbs"
+
+    /// Verbs use `number` from CSV + offset so they never collide with noun `seedNumber` (nouns use 1…~5k).
+    nonisolated static let verbSeedNumberOffset = 10_000_000
 
     static var needsImport: Bool {
-        !UserDefaults.standard.bool(forKey: importFlagKey)
+        !UserDefaults.standard.bool(forKey: nounImportFlagKey)
+            || !UserDefaults.standard.bool(forKey: verbImportFlagKey)
     }
 
-    private static func markImportFinished() {
-        UserDefaults.standard.set(true, forKey: importFlagKey)
+    private static func markNounImportFinished() {
+        UserDefaults.standard.set(true, forKey: nounImportFlagKey)
         UserDefaults.standard.removeObject(forKey: legacyImportFlagKey)
     }
 
-    /// Loads and parses CSV off the main actor, then inserts in batches so the UI can render.
+    private static func markVerbImportFinished() {
+        UserDefaults.standard.set(true, forKey: verbImportFlagKey)
+    }
+
+    /// Loads bundled noun and/or verb CSVs off the main actor, then inserts in batches.
     static func importIfNeededAsync(modelContext: ModelContext) async {
-        guard needsImport else { return }
+        let doNouns = !UserDefaults.standard.bool(forKey: nounImportFlagKey)
+        let doVerbs = !UserDefaults.standard.bool(forKey: verbImportFlagKey)
 
-        guard let url = Bundle.main.url(forResource: bundledCSVName, withExtension: "csv") else {
-            print("CSVImportService: \(bundledCSVName).csv not in bundle — marking import finished to avoid a stuck launch")
-            markImportFinished()
-            return
+        guard doNouns || doVerbs else { return }
+
+        if doNouns {
+            if let url = Bundle.main.url(forResource: bundledNounsName, withExtension: "csv") {
+                await MainActor.run {
+                    deleteNounEntries(modelContext: modelContext)
+                }
+
+                let rows: [ParsedNounRow] = await Task.detached(priority: .userInitiated) {
+                    Self.loadNounRows(from: url)
+                }.value
+
+                if rows.isEmpty {
+                    print("CSVImportService: parsed 0 noun rows")
+                } else {
+                    await insertNounBatches(rows: rows, modelContext: modelContext)
+                    print("CSVImportService: imported \(rows.count) nouns")
+                }
+                await MainActor.run { markNounImportFinished() }
+            } else {
+                print("CSVImportService: \(bundledNounsName).csv missing — skipping noun import")
+                await MainActor.run { markNounImportFinished() }
+            }
         }
 
-        await MainActor.run {
-            deleteAllVocabularyEntries(modelContext: modelContext)
+        if doVerbs {
+            if let url = Bundle.main.url(forResource: bundledVerbsName, withExtension: "csv") {
+                let rows: [ParsedVerbRow] = await Task.detached(priority: .userInitiated) {
+                    Self.loadVerbRows(from: url)
+                }.value
+
+                if rows.isEmpty {
+                    print("CSVImportService: parsed 0 verb rows")
+                } else {
+                    await MainActor.run {
+                        deleteVerbEntries(modelContext: modelContext)
+                    }
+                    await insertVerbBatches(rows: rows, modelContext: modelContext)
+                    print("CSVImportService: imported \(rows.count) verbs")
+                }
+                await MainActor.run { markVerbImportFinished() }
+            } else {
+                print("CSVImportService: \(bundledVerbsName).csv missing — skipping verb import")
+                await MainActor.run { markVerbImportFinished() }
+            }
         }
+    }
 
-        let rows: [ParsedCSVRow] = await Task.detached(priority: .userInitiated) {
-            Self.loadRows(from: url)
-        }.value
-
-        guard !rows.isEmpty else {
-            print("CSVImportService: parsed 0 rows — check CSV; marking import finished so the app can run")
-            markImportFinished()
-            return
+    @MainActor
+    private static func deleteNounEntries(modelContext: ModelContext) {
+        let verb = "verb"
+        let fd = FetchDescriptor<VocabularyEntry>(
+            predicate: #Predicate<VocabularyEntry> { $0.entryKind != verb }
+        )
+        guard let nouns = try? modelContext.fetch(fd) else { return }
+        for e in nouns {
+            modelContext.delete(e)
         }
+        try? modelContext.save()
+    }
 
+    @MainActor
+    private static func deleteVerbEntries(modelContext: ModelContext) {
+        let kind = "verb"
+        let fd = FetchDescriptor<VocabularyEntry>(
+            predicate: #Predicate<VocabularyEntry> { $0.entryKind == kind }
+        )
+        guard let verbs = try? modelContext.fetch(fd) else { return }
+        for e in verbs {
+            modelContext.delete(e)
+        }
+        try? modelContext.save()
+    }
+
+    private static func insertNounBatches(rows: [ParsedNounRow], modelContext: ModelContext) async {
         let batchSize = 200
-        var inserted = 0
         var index = 0
         while index < rows.count {
             let end = min(index + batchSize, rows.count)
@@ -57,47 +121,60 @@ enum CSVImportService {
                         thematic: row.thematic,
                         exampleFrench: row.exampleFrench,
                         exampleEnglish: row.exampleEnglish,
-                        chineseExplanation: row.chineseExplanation,
-                        genderCode: row.genderCode,
-                        lemmaArticle: row.lemmaArticle,
-                        pluralForm: row.pluralForm,
-                        pluralType: row.pluralType
+                        entryKind: "noun",
+                        chineseExplanation: row.chineseExplanation.trimmedOrNil,
+                        genderCode: row.genderCode.trimmedOrNil,
+                        lemmaArticle: row.lemmaArticle.trimmedOrNil,
+                        pluralForm: row.pluralForm.trimmedOrNil,
+                        pluralType: row.pluralType.trimmedOrNil
                     )
                     modelContext.insert(entry)
-                    inserted += 1
                 }
-                do {
-                    try modelContext.save()
-                } catch {
-                    print("CSVImportService batch save error: \(error)")
-                }
+                try? modelContext.save()
             }
             await Task.yield()
             index = end
         }
+        await MainActor.run { try? modelContext.save() }
+    }
 
-        await MainActor.run {
-            do {
-                try modelContext.save()
-                markImportFinished()
-                print("CSVImportService: imported \(inserted) rows from \(bundledCSVName).csv")
-            } catch {
-                print("CSVImportService final save error: \(error)")
+    private static func insertVerbBatches(rows: [ParsedVerbRow], modelContext: ModelContext) async {
+        let batchSize = 200
+        var index = 0
+        while index < rows.count {
+            let end = min(index + batchSize, rows.count)
+            let batch = Array(rows[index..<end])
+            await MainActor.run {
+                for row in batch {
+                    let entry = VocabularyEntry(
+                        seedNumber: row.seedNumber,
+                        frenchLemma: row.frenchLemma,
+                        english: row.english,
+                        pos: row.pos,
+                        thematic: row.thematic,
+                        exampleFrench: row.exampleFrench,
+                        exampleEnglish: row.exampleEnglish,
+                        entryKind: "verb",
+                        chineseExplanation: row.chineseExplanation.trimmedOrNil,
+                        verbGroup: row.verbGroup.trimmedOrNil,
+                        verbAuxiliary: row.verbAuxiliary.trimmedOrNil,
+                        verbPastParticiple: row.pastParticiple.trimmedOrNil,
+                        verbPresentJSON: row.presentJSON,
+                        verbPasseComposeJSON: row.passeComposeJSON
+                    )
+                    modelContext.insert(entry)
+                }
+                try? modelContext.save()
             }
+            await Task.yield()
+            index = end
         }
+        await MainActor.run { try? modelContext.save() }
     }
 
-    @MainActor
-    private static func deleteAllVocabularyEntries(modelContext: ModelContext) {
-        let descriptor = FetchDescriptor<VocabularyEntry>()
-        guard let all = try? modelContext.fetch(descriptor) else { return }
-        for entry in all {
-            modelContext.delete(entry)
-        }
-        try? modelContext.save()
-    }
+    // MARK: - Noun parsing
 
-    private struct ParsedCSVRow {
+    private struct ParsedNounRow {
         let seedNumber: Int
         let frenchLemma: String
         let english: String
@@ -112,7 +189,7 @@ enum CSVImportService {
         let pluralType: String
     }
 
-    private nonisolated static func loadRows(from url: URL) -> [ParsedCSVRow] {
+    private nonisolated static func loadNounRows(from url: URL) -> [ParsedNounRow] {
         guard let data = try? Data(contentsOf: url),
               var text = String(data: data, encoding: .utf8) else { return [] }
 
@@ -128,7 +205,7 @@ enum CSVImportService {
         }
         guard !headerFields.isEmpty else { return [] }
 
-        var out: [ParsedCSVRow] = []
+        var out: [ParsedNounRow] = []
         out.reserveCapacity(lines.count - 1)
 
         for line in lines.dropFirst() {
@@ -144,7 +221,7 @@ enum CSVImportService {
             guard let num = Int(row["number"]?.trimmingCharacters(in: .whitespaces) ?? "") else { continue }
 
             out.append(
-                ParsedCSVRow(
+                ParsedNounRow(
                     seedNumber: num,
                     frenchLemma: row["french_lemma"] ?? "",
                     english: row["english"] ?? "",
@@ -161,6 +238,108 @@ enum CSVImportService {
             )
         }
         return out
+    }
+
+    // MARK: - Verb parsing
+
+    private struct ParsedVerbRow {
+        let seedNumber: Int
+        let frenchLemma: String
+        let english: String
+        let pos: String
+        let thematic: String
+        let exampleFrench: String
+        let exampleEnglish: String
+        let chineseExplanation: String
+        let verbGroup: String
+        let verbAuxiliary: String
+        let pastParticiple: String
+        let presentJSON: String
+        let passeComposeJSON: String
+    }
+
+    private nonisolated static func loadVerbRows(from url: URL) -> [ParsedVerbRow] {
+        guard let data = try? Data(contentsOf: url),
+              var text = String(data: data, encoding: .utf8) else { return [] }
+
+        if text.hasPrefix("\u{FEFF}") {
+            text.removeFirst()
+        }
+
+        let lines = text.split(whereSeparator: \.isNewline).map(String.init)
+        guard lines.count >= 2 else { return [] }
+
+        let headerFields = parseCSVFields(lines[0]).map {
+            $0.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        guard !headerFields.isEmpty else { return [] }
+
+        var out: [ParsedVerbRow] = []
+        out.reserveCapacity(lines.count - 1)
+
+        for line in lines.dropFirst() {
+            guard !line.isEmpty else { continue }
+            let fields = parseCSVFields(line)
+            guard fields.count >= headerFields.count else { continue }
+
+            var row: [String: String] = [:]
+            for (i, key) in headerFields.enumerated() where i < fields.count {
+                row[key] = fields[i]
+            }
+
+            guard let num = Int(row["number"]?.trimmingCharacters(in: .whitespaces) ?? "") else { continue }
+
+            let seedNumber = verbSeedNumberOffset + num
+            let presentJSON = conjugationJSON(row: row, persons: [
+                ("je", "present_je"), ("tu", "present_tu"), ("il/elle", "present_il_elle"),
+                ("nous", "present_nous"), ("vous", "present_vous"), ("ils/elles", "present_ils_elles"),
+            ])
+            let pcJSON = conjugationJSON(row: row, persons: [
+                ("je", "pc_je"), ("tu", "pc_tu"), ("il/elle", "pc_il_elle"),
+                ("nous", "pc_nous"), ("vous", "pc_vous"), ("ils/elles", "pc_ils_elles"),
+            ])
+
+            out.append(
+                ParsedVerbRow(
+                    seedNumber: seedNumber,
+                    frenchLemma: row["french_lemma"] ?? "",
+                    english: row["english"] ?? "",
+                    pos: row["pos"] ?? "",
+                    thematic: row["thematic"] ?? "",
+                    exampleFrench: row["example_french"] ?? "",
+                    exampleEnglish: row["example_english"] ?? "",
+                    chineseExplanation: row["chinese_explanation"] ?? "",
+                    verbGroup: row["verb_group"] ?? "",
+                    verbAuxiliary: row["auxiliary"] ?? "",
+                    pastParticiple: row["past_participle"] ?? "",
+                    presentJSON: presentJSON,
+                    passeComposeJSON: pcJSON
+                )
+            )
+        }
+        return out
+    }
+
+    private nonisolated static func conjugationJSON(
+        row: [String: String],
+        persons: [(String, String)]
+    ) -> String {
+        struct Pair: Codable {
+            let person: String
+            let form: String
+        }
+        var pairs: [Pair] = []
+        for (label, key) in persons {
+            let raw = row[key]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !raw.isEmpty {
+                pairs.append(Pair(person: label, form: raw))
+            }
+        }
+        guard let data = try? JSONEncoder().encode(pairs),
+              let s = String(data: data, encoding: .utf8) else {
+            return "[]"
+        }
+        return s
     }
 
     /// Splits one CSV line into fields (supports quoted commas).
@@ -180,5 +359,12 @@ enum CSVImportService {
         }
         fields.append(current)
         return fields
+    }
+}
+
+private extension String {
+    var trimmedOrNil: String? {
+        let t = trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.isEmpty ? nil : t
     }
 }

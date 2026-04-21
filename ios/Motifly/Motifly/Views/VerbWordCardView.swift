@@ -2,8 +2,13 @@ import AVFoundation
 import SwiftData
 import SwiftUI
 
-/// Detail card for noun entries (v1 vocabulary), aligned with the design prototype.
-struct NounWordCardView: View {
+private struct ConjugationPair: Codable {
+    let person: String
+    let form: String
+}
+
+/// Detail card for verb entries (conjugation + shared shell).
+struct VerbWordCardView: View {
     @Bindable var entry: VocabularyEntry
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
@@ -11,10 +16,31 @@ struct NounWordCardView: View {
     @StateObject private var mineCoordinator = MineRecordingCoordinator()
 
     @State private var memoryNote: String = ""
-    @State private var articlePluralExpanded = true
+    @State private var coreFormsExpanded = false
+    @State private var presentExpanded = true
+    @State private var passeExpanded = true
     @State private var memorySupportExpanded = false
 
     @State private var speechSynth = AVSpeechSynthesizer()
+
+    /// Verbs have no masculine/feminine split — use one green for the headword everywhere (prototype `text-green-700`).
+    private var lemmaDisplayColor: Color {
+        if colorScheme == .dark {
+            return Color(red: 0.38, green: 0.82, blue: 0.55)
+        }
+        return Color(red: 0.09, green: 0.50, blue: 0.26)
+    }
+
+    private var memorySupportCardBackground: Color {
+        if colorScheme == .dark {
+            return Color(.secondarySystemGroupedBackground)
+        }
+        return Color(red: 1, green: 0.96, blue: 0.82)
+    }
+
+    private var cardSurfaceFill: Color {
+        Color(.secondarySystemGroupedBackground)
+    }
 
     var body: some View {
         ScrollView {
@@ -22,7 +48,11 @@ struct NounWordCardView: View {
                 headerBlock
                 translationBlock
                 exampleBlock
-                articlePluralSection
+                coreFormsSection
+                presentTenseSection
+                Divider()
+                    .opacity(0.35)
+                passeComposeSection
                 memorySupportSection
                 progressPlaceholder
                 erroredAttemptsPlaceholder
@@ -53,16 +83,10 @@ struct NounWordCardView: View {
         UserDefaults.standard.set(text, forKey: memoryKey)
     }
 
-    private var lemmaDisplayColor: Color {
-        NounWordCardView.lemmaColor(genderCode: entry.genderCode ?? "", pos: entry.pos)
-    }
-
-    /// Warm note card in light mode; semantic grouped fill in dark mode (avoids harsh cream on dark UI).
-    private var memorySupportCardBackground: Color {
-        if colorScheme == .dark {
-            return Color(.secondarySystemGroupedBackground)
-        }
-        return Color(red: 1, green: 0.96, blue: 0.82)
+    private func sectionHeading(_ title: String) -> some View {
+        Text(title)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(.secondary)
     }
 
     private var headerBlock: some View {
@@ -72,11 +96,26 @@ struct NounWordCardView: View {
                     Text(entry.frenchLemma)
                         .font(.title.weight(.bold))
                         .foregroundStyle(lemmaDisplayColor)
-                    Text(posLabel)
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(Color(.tertiarySystemFill)))
+                    HStack(alignment: .center, spacing: 8) {
+                        Text("Verb")
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(Color(.tertiarySystemFill)))
+                        if let g = entry.verbGroup, !g.isEmpty {
+                            Text(g)
+                                .font(.caption2.weight(.semibold))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Capsule().fill(Color(.tertiarySystemFill)))
+                        }
+                        if let a = entry.verbAuxiliary, !a.isEmpty {
+                            Text("aux: \(a)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -122,6 +161,8 @@ struct NounWordCardView: View {
                     .accessibilityLabel(mineCoordinator.isRecording ? "Stop recording" : "Record my pronunciation")
                     .frame(width: Self.headerAudioControlOuter, height: Self.headerAudioControlOuter)
                 }
+                .layoutPriority(1)
+                .zIndex(1)
             }
 
             if mineCoordinator.isRecording {
@@ -173,14 +214,6 @@ struct NounWordCardView: View {
         )
     }
 
-    private var posLabel: String {
-        let p = entry.pos.lowercased()
-        if p.contains("nm") || p.contains("nf") || p.contains("nmi") || p.contains("nc") || p.contains("nf(pl)") {
-            return "Noun"
-        }
-        return "Word"
-    }
-
     private var translationBlock: some View {
         VStack(alignment: .leading, spacing: 6) {
             translationPairRow(title: "English", text: entry.english)
@@ -211,18 +244,6 @@ struct NounWordCardView: View {
         }
     }
 
-    /// Elevated surface on `systemGroupedBackground` so cards stay visible in light and dark mode.
-    private var cardSurfaceFill: Color {
-        Color(.secondarySystemGroupedBackground)
-    }
-
-    /// Matches the gray label style used for “English”, “中文”, and section headings.
-    private func sectionHeading(_ title: String) -> some View {
-        Text(title)
-            .font(.caption2.weight(.semibold))
-            .foregroundStyle(.secondary)
-    }
-
     private var exampleBlock: some View {
         VStack(alignment: .leading, spacing: 6) {
             sectionHeading("Example sentence")
@@ -244,36 +265,37 @@ struct NounWordCardView: View {
         )
     }
 
-    private var articlePluralSection: some View {
-        DisclosureGroup(isExpanded: $articlePluralExpanded) {
+    /// e.g. `avoir + parlé` when both auxiliary and past participle exist (prototype “Passé composé helper”).
+    private var passeComposeHelperDisplay: String {
+        let pp = (entry.verbPastParticiple ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let aux = (entry.verbAuxiliary ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if !aux.isEmpty, !pp.isEmpty { return "\(aux) + \(pp)" }
+        if !pp.isEmpty { return pp }
+        return "—"
+    }
+
+    private var coreFormsSection: some View {
+        DisclosureGroup(isExpanded: $coreFormsExpanded) {
             HStack(alignment: .top, spacing: 12) {
-                articleCard
-                pluralCard
+                coreFormInfinitiveCard
+                coreFormPasseComposeHelperCard
             }
             .padding(.top, 4)
         } label: {
-            sectionHeading("Article & plural")
+            sectionHeading("Core Forms")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var articleCard: some View {
+    private var coreFormInfinitiveCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Article")
+            Text("Infinitive")
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.secondary)
-            if let art = entry.lemmaArticle, !art.isEmpty {
-                Text("\(art) \(entry.frenchLemma)")
-                    .font(.callout)
-                if let indef = indefiniteSingularLine() {
-                    Text(indef)
-                        .font(.callout)
-                }
-            } else {
-                Text("—")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
+            Text(entry.frenchLemma)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(lemmaDisplayColor)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
@@ -283,24 +305,15 @@ struct NounWordCardView: View {
         )
     }
 
-    private var pluralCard: some View {
+    private var coreFormPasseComposeHelperCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Plural")
+            Text("Passé composé helper")
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.secondary)
-            if let pl = entry.pluralForm, !pl.isEmpty {
-                Text(pluralWithDefiniteArticle(pl))
-                    .font(.callout)
-                if let pt = entry.pluralType, !pt.isEmpty {
-                    Text(pt)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                Text("—")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
+            Text(passeComposeHelperDisplay)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(passeComposeHelperDisplay == "—" ? .secondary : .primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
@@ -310,22 +323,112 @@ struct NounWordCardView: View {
         )
     }
 
-    /// Indefinite singular (un / une) when gender is known.
-    private func indefiniteSingularLine() -> String? {
-        let g = (entry.genderCode ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let indef = (g == "f" || entry.pos.lowercased().contains("nf")) ? "une" : (g == "m" || entry.pos.lowercased().contains("nm")) ? "un" : nil
-        guard let indef else { return nil }
-        return "\(indef) \(entry.frenchLemma)"
+    private var presentTenseSection: some View {
+        DisclosureGroup(isExpanded: $presentExpanded) {
+            conjugationMiniTable(json: entry.verbPresentJSON)
+                .padding(.top, 8)
+        } label: {
+            sectionHeading("Present Tense Mini Table")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    /// "les …" line for display when article + lemma pattern fits.
-    private func pluralWithDefiniteArticle(_ pluralLemma: String) -> String {
-        let g = (entry.genderCode ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let les = (g == "f" || entry.pos.lowercased().contains("nf")) || (g == "m" || entry.pos.lowercased().contains("nm"))
-        if les {
-            return "les \(pluralLemma)"
+    private var passeComposeSection: some View {
+        DisclosureGroup(isExpanded: $passeExpanded) {
+            conjugationMiniTable(json: entry.verbPasseComposeJSON)
+                .padding(.top, 8)
+        } label: {
+            sectionHeading("Passé Composé Mini Table")
         }
-        return pluralLemma
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// Two-column × three-row grid of pills: pronoun (muted) + form (bold) per cell.
+    private func conjugationMiniTable(json: String?) -> some View {
+        let pairs = decodePairs(json)
+        return Group {
+            if pairs.isEmpty {
+                Text("No forms in seed data.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(cardSurfaceFill)
+                    )
+            } else {
+                let rows = Self.pairedRows(from: pairs)
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                        HStack(alignment: .top, spacing: 8) {
+                            ForEach(0..<row.count, id: \.self) { idx in
+                                let pair = row[idx]
+                                conjugationPill(person: pair.person, form: pair.form)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            if row.count == 1 {
+                                Spacer(minLength: 0)
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                    }
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(cardSurfaceFill)
+                )
+            }
+        }
+    }
+
+    private func conjugationPill(person: String, form: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(person)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+            Spacer(minLength: 4)
+            Text(form)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.trailing)
+                .lineLimit(3)
+                .minimumScaleFactor(0.75)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color(.tertiarySystemGroupedBackground))
+        )
+    }
+
+    /// Pairs consecutive persons into rows of two (je+tu | il/elle+nous | vous+ils/elles).
+    private static func pairedRows(from pairs: [ConjugationPair]) -> [[ConjugationPair]] {
+        var rows: [[ConjugationPair]] = []
+        var i = 0
+        while i < pairs.count {
+            if i + 1 < pairs.count {
+                rows.append([pairs[i], pairs[i + 1]])
+                i += 2
+            } else {
+                rows.append([pairs[i]])
+                i += 1
+            }
+        }
+        return rows
+    }
+
+    private func decodePairs(_ json: String?) -> [ConjugationPair] {
+        guard let json, let data = json.data(using: .utf8),
+              let pairs = try? JSONDecoder().decode([ConjugationPair].self, from: data) else {
+            return []
+        }
+        return pairs
     }
 
     private var memorySupportSection: some View {
@@ -411,14 +514,14 @@ struct NounWordCardView: View {
 
     private func highlightedExample(french: String, lemma: String, color: Color) -> Text {
         var s = AttributedString(french)
-        if let range = s.range(of: lemma, options: String.CompareOptions.caseInsensitive) {
+        if let range = s.range(of: lemma, options: .caseInsensitive) {
             s[range].foregroundColor = color
             s[range].font = .callout.bold()
         }
         return Text(s)
     }
 
-    /// Uses on-device TTS. `fr-FR` is France French; falls back to another installed `fr-*` voice if needed.
+    /// TTS needs an active playback session; mic/teardown can leave the session inactive so French is silent.
     private func prepareAudioSessionForFrenchTTS() {
         let session = AVAudioSession.sharedInstance()
         do {
@@ -451,23 +554,9 @@ struct NounWordCardView: View {
         return AVSpeechSynthesisVoice.speechVoices().first { $0.language.hasPrefix("fr") }
     }
 
-    /// Icon area inside each header audio control (keep at 30).
     private static let headerAudioButtonSide: CGFloat = 30
-    /// Outer layout box for bordered circular buttons around `headerAudioButtonSide`.
     private static let headerAudioControlOuter: CGFloat = 36
     private static let headerAudioIconFont = Font.callout
-
-    static func lemmaColor(genderCode: String, pos: String) -> Color {
-        let g = genderCode.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let p = pos.lowercased()
-        if g == "f" || p.contains("nf") {
-            return Color(red: 0.78, green: 0.28, blue: 0.42)
-        }
-        if g == "m" || p.contains("nm") {
-            return Color(red: 0.18, green: 0.32, blue: 0.62)
-        }
-        return Color.primary
-    }
 }
 
 #Preview {
@@ -477,23 +566,27 @@ struct NounWordCardView: View {
         SearchHistoryEntry.self,
         configurations: config
     )
+    let present = #"[{"person":"je","form":"suis"},{"person":"tu","form":"es"}]"#
+    let pc = #"[{"person":"je","form":"ai été"}]"#
     let entry = VocabularyEntry(
-        seedNumber: 1,
-        frenchLemma: "voiture",
-        english: "car",
-        pos: "nf",
-        thematic: "Travel",
-        exampleFrench: "Ma voiture est bleue.",
-        exampleEnglish: "My car is blue.",
-        chineseExplanation: "汽车",
-        genderCode: "f",
-        lemmaArticle: "la",
-        pluralForm: "voitures",
-        pluralType: "regular -s"
+        seedNumber: 10_000_005,
+        frenchLemma: "être",
+        english: "to be",
+        pos: "v",
+        thematic: "none",
+        exampleFrench: "c'est bien",
+        exampleEnglish: "that's good",
+        entryKind: "verb",
+        chineseExplanation: "是",
+        verbGroup: "3e groupe",
+        verbAuxiliary: "avoir",
+        verbPastParticiple: "été",
+        verbPresentJSON: present,
+        verbPasseComposeJSON: pc
     )
     container.mainContext.insert(entry)
     return NavigationStack {
-        NounWordCardView(entry: entry)
+        VerbWordCardView(entry: entry)
     }
     .modelContainer(container)
 }
