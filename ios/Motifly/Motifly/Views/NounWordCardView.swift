@@ -419,11 +419,26 @@ struct NounWordCardView: View {
     }
 
     /// Uses on-device TTS. `fr-FR` is France French; falls back to another installed `fr-*` voice if needed.
+    private func prepareAudioSessionForFrenchTTS() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+            try session.setActive(true, options: [])
+        } catch {
+            try? session.setActive(true, options: [])
+        }
+    }
+
     private func speakFrench(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
         if speechSynth.isSpeaking {
             speechSynth.stopSpeaking(at: .immediate)
         }
-        let utterance = AVSpeechUtterance(string: text)
+        if !mineCoordinator.isRecording {
+            prepareAudioSessionForFrenchTTS()
+        }
+        let utterance = AVSpeechUtterance(string: trimmed)
         utterance.voice = Self.preferredFrenchVoice()
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.92
         speechSynth.speak(utterance)
