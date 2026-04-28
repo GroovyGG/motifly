@@ -25,6 +25,7 @@ struct DictationSessionView: View {
     @State private var autoPasses: [DictationPlaybackPass] = DictationTimingProfile.autoDefault.passes
     @State private var promptReplayCount = 0
     @State private var promptTraceEvents: [DictationPlaybackTraceEvent] = []
+    @State private var isSessionActive = false
 
     private let frenchCharacterRows: [[String]] = [
         ["à", "â", "æ", "ç", "é", "è", "ê", "ë"],
@@ -46,6 +47,8 @@ struct DictationSessionView: View {
             VStack(alignment: .leading, spacing: 16) {
                 if sessionDone {
                     sessionSummary
+                } else if !isSessionActive {
+                    preSessionSetup
                 } else {
                     progressHeader
                     controls
@@ -63,7 +66,6 @@ struct DictationSessionView: View {
             refreshOrderedWords()
             wordCount = min(10, max(1, orderedUnitWords.count))
             resetSession()
-            startNewSession()
         }
         .onChange(of: sessionDone) { _, done in
             if done {
@@ -80,41 +82,73 @@ struct DictationSessionView: View {
             }
         }
         .onChange(of: wordCount) { _, _ in
-            if !sessionDone {
+            if isSessionActive && !sessionDone {
                 finishCurrentSession(status: "abandoned")
             }
             resetSession()
-            startNewSession()
         }
         .onChange(of: orderMode) { _, _ in
-            if !sessionDone {
+            if isSessionActive && !sessionDone {
                 finishCurrentSession(status: "abandoned")
             }
             refreshOrderedWords()
             wordCount = min(max(1, wordCount), max(1, orderedUnitWords.count))
             resetSession()
-            startNewSession()
         }
         .onChange(of: isAutoMode) { _, _ in
-            if !sessionDone {
+            if isSessionActive && !sessionDone {
                 finishCurrentSession(status: "abandoned")
             }
             resetSession()
-            startNewSession()
         }
         .onChange(of: autoPasses) { _, _ in
-            if !sessionDone {
+            if isSessionActive && !sessionDone {
                 finishCurrentSession(status: "abandoned")
             }
             resetSession()
-            startNewSession()
         }
         .onDisappear {
-            if !sessionDone {
+            if isSessionActive && !sessionDone {
                 dictationProgress.abandonSession(unitIndex: unitIndex)
                 finishCurrentSession(status: "abandoned")
             }
         }
+    }
+
+    private var preSessionSetup: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Session setup")
+                .font(.title3.weight(.semibold))
+
+            controls
+
+            Button {
+                startNewSession()
+            } label: {
+                HStack {
+                    Text("Start Dictation")
+                        .font(.headline.weight(.semibold))
+                    Spacer()
+                    Image(systemName: "play.fill")
+                        .font(.headline.weight(.semibold))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 18)
+                .frame(height: 52)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.blue)
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(orderedUnitWords.isEmpty)
+            .opacity(orderedUnitWords.isEmpty ? 0.5 : 1)
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
     }
 
     private var progressHeader: some View {
@@ -316,7 +350,6 @@ struct DictationSessionView: View {
             Button("Again") {
                 resetSession()
                 sessionDone = false
-                startNewSession()
             }
             .buttonStyle(.bordered)
         }
@@ -355,6 +388,7 @@ struct DictationSessionView: View {
         wrong = 0
         lastWasCorrect = nil
         sessionDone = false
+        isSessionActive = false
         showResultHint = false
         promptShownAt = .now
         resetPromptPlaybackState()
@@ -375,6 +409,7 @@ struct DictationSessionView: View {
 
     private func startNewSession() {
         guard !activeWords.isEmpty else { return }
+        isSessionActive = true
         let profile = timingProfileForCurrentMode()
         let session = DictationSession(
             sourceScope: "unit_\(unitIndex + 1)",
@@ -484,6 +519,7 @@ struct DictationSessionView: View {
         session.endedAt = .now
         try? modelContext.save()
         currentSessionId = nil
+        isSessionActive = false
     }
 }
 
