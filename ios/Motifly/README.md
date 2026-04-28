@@ -2,11 +2,35 @@
 
 Open **`Motifly.xcodeproj`** in this directory in Xcode 16+ (use **File → Open** if double-click does not work).
 
-**Seed data:** canonical CSVs live in the repo at **`../../data_seed/`** (`seed_nouns`, `seed_verbs`, `seed_adjectives`, `seed_adv`, `seed_determiners`, `seed_pronouns`, `seed_prepositions`). The app bundles copies under **`SeedData/`** next to the source tree; update those files when you change seeds, or re-copy from `data_seed/` before shipping.
+**Seed data:** canonical CSVs live in the repo at **`../../data_seed/`** (`seed_nouns`, `seed_verbs`, `seed_adjectives`, `seed_adv`, `seed_determiners`, `seed_pronouns`, `seed_prepositions`).  
+The app bundles copies under **`SeedData/`** next to the source tree; update those files when you change seeds, or re-copy from `data_seed/` before shipping.
 
-- **Home:** empty shell (v1.0).
-- **Vocabulary:** search and bundled CSV import from `SeedData/`; up to 50 recent searches (SwiftData). Opens noun, verb, adjective, adverb, determiner, pronoun, or preposition cards by entry kind.
-- **Dictation:** words in units of 50 by `seedNumber` order; session uses **English gloss prompt** and **lemma typing** (**noun** `VocabularyEntry` rows only).
+- **Home:** study dashboard (streak, weekly time/accuracy, study heatmap, group progress, vocabulary progress, daily/weekly goal cards).
+- **Vocabulary:** search and bundled CSV import from `SeedData/`; recent history + typed cards by entry kind (noun/verb/adjective/adverb/determiner/pronoun/preposition), with Mine recording workflow.
+- **Dictation:** grouped by assigned range groups (from seed `group assigned`, fallback by seed-number formula), supports all imported entries, with manual/auto playback and group review.
+- **Settings:** dedicated settings screen (goals, theme color, reminders, study preferences, about/debug entry).
+
+## Current local data schema (SwiftData)
+
+Registered in `MotiflyApp` schema:
+
+- `VocabularyEntry` — local dictionary rows (all entry kinds), includes `groupAssigned`.
+- `SearchHistoryEntry` — recent lookup index (per-seed last searched time).
+- `DictationSession` — session lifecycle + summary counts/config snapshot.
+- `DictationAttemptLog` — per-attempt event log (`promptShownAt`, `submittedAt`, replay info, correctness, normalized forms).
+- `DictationWordStats` — per-word aggregate stats for ordering/review.
+- `VocabularyStudyEvent` — append-only cross-feature timeline (`eventType`, `occurredAt`, `contextJSON`).
+
+## Study event timeline
+
+`StudyEventLogger` writes append-only `VocabularyStudyEvent` rows for key actions, including:
+
+- card open (`card_view`)
+- memory edits (`memory_note_edit`)
+- mine recording actions (`mine_saved`, `mine_discarded`)
+- dictation session lifecycle and interactions (`dictation_session_start`, `dictation_prompt_play`, `dictation_replay`, `dictation_submit`, `dictation_session_end`)
+- dictation progress mirror events (`dictation_progress_completed`, `dictation_progress_abandoned`)
+- review interactions (`review_word_open`, `review_tts_play`, `review_mine_play`, `review_start_dictation_tap`)
 
 Build from CLI:
 
