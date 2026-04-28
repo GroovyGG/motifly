@@ -6,7 +6,7 @@ Open **`Motifly.xcodeproj`** in this directory in Xcode 16+ (use **File → Open
 
 - **Home:** empty shell (v1.0).
 - **Vocabulary:** search and bundled CSV import from `SeedData/`; up to 50 recent searches (SwiftData). Opens noun, verb, adjective, adverb, determiner, pronoun, or preposition cards by entry kind.
-- **Dictation:** words in units of 50 by `seedNumber` order; session uses English gloss prompt and lemma typing.
+- **Dictation:** words in units of 50 by `seedNumber` order; session uses **English gloss prompt** and **lemma typing** (**noun** `VocabularyEntry` rows only).
 
 Build from CLI:
 
