@@ -327,7 +327,30 @@ struct DictationSessionView: View {
             errorType: isCorrect ? nil : "other"
         )
         modelContext.insert(attempt)
+        upsertWordStats(seedNumber: word.seedNumber, isCorrect: isCorrect, at: now)
         try? modelContext.save()
+    }
+
+    private func upsertWordStats(seedNumber: Int, isCorrect: Bool, at now: Date) {
+        let fd = FetchDescriptor<DictationWordStats>(
+            predicate: #Predicate<DictationWordStats> { $0.seedNumber == seedNumber }
+        )
+        let stats: DictationWordStats
+        if let existing = try? modelContext.fetch(fd).first {
+            stats = existing
+        } else {
+            stats = DictationWordStats(seedNumber: seedNumber)
+            modelContext.insert(stats)
+        }
+
+        stats.attemptCount += 1
+        stats.lastAttemptAt = now
+        if isCorrect {
+            stats.correctCount += 1
+        } else {
+            stats.wrongCount += 1
+            stats.lastWrongAt = now
+        }
     }
 
     private func playCurrentPrompt(isUserReplay: Bool) async {
@@ -403,6 +426,7 @@ private extension Array where Element == DictationPlaybackTraceEvent {
         SearchHistoryEntry.self,
         DictationSession.self,
         DictationAttemptLog.self,
+        DictationWordStats.self,
         configurations: config
     )
     NavigationStack {
