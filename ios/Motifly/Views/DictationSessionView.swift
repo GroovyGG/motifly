@@ -9,6 +9,8 @@ struct DictationSessionView: View {
     let words: [VocabularyEntry]
 
     @State private var wordCount: Int = 10
+    @State private var orderMode: DictationOrderMode = .random
+    @State private var orderedUnitWords: [VocabularyEntry] = []
     @State private var currentIndex = 0
     @State private var userInput = ""
     @State private var correct = 0
@@ -19,8 +21,8 @@ struct DictationSessionView: View {
     @State private var promptShownAt: Date = .now
 
     private var activeWords: [VocabularyEntry] {
-        let n = min(max(1, wordCount), words.count)
-        return Array(words.prefix(n))
+        let n = min(max(1, wordCount), orderedUnitWords.count)
+        return Array(orderedUnitWords.prefix(n))
     }
 
     private var current: VocabularyEntry? {
@@ -42,7 +44,8 @@ struct DictationSessionView: View {
         .navigationTitle("Unit \(unitIndex + 1)")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            wordCount = min(10, max(1, words.count))
+            refreshOrderedWords()
+            wordCount = min(10, max(1, orderedUnitWords.count))
             resetSession()
             startNewSession()
         }
@@ -63,6 +66,15 @@ struct DictationSessionView: View {
             resetSession()
             startNewSession()
         }
+        .onChange(of: orderMode) { _, _ in
+            if !sessionDone {
+                finishCurrentSession(status: "abandoned")
+            }
+            refreshOrderedWords()
+            wordCount = min(max(1, wordCount), max(1, orderedUnitWords.count))
+            resetSession()
+            startNewSession()
+        }
         .onDisappear {
             if !sessionDone {
                 dictationProgress.abandonSession(unitIndex: unitIndex)
@@ -73,13 +85,20 @@ struct DictationSessionView: View {
 
     private var controls: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Words in this session: \(activeWords.count) / \(words.count) in unit")
+            Text("Words in this session: \(activeWords.count) / \(orderedUnitWords.count) in unit")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Stepper(value: $wordCount, in: 1...max(1, words.count)) {
-                Text("Repeat count: \(min(wordCount, words.count))")
+            Stepper(value: $wordCount, in: 1...max(1, orderedUnitWords.count)) {
+                Text("Repeat count: \(min(wordCount, orderedUnitWords.count))")
             }
             .disabled(activeWords.isEmpty)
+
+            Picker("Order mode", selection: $orderMode) {
+                ForEach(DictationOrderMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
         }
     }
 
@@ -168,11 +187,19 @@ struct DictationSessionView: View {
         promptShownAt = .now
     }
 
+    private func refreshOrderedWords() {
+        orderedUnitWords = DictationWordOrdering.orderedWords(
+            words,
+            mode: orderMode,
+            modelContext: modelContext
+        )
+    }
+
     private func startNewSession() {
         guard !activeWords.isEmpty else { return }
         let session = DictationSession(
             sourceScope: "unit_\(unitIndex + 1)",
-            orderMode: "current",
+            orderMode: orderMode.rawValue,
             timingProfileJSON: "{}",
             plannedCount: activeWords.count
         )
