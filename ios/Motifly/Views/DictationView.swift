@@ -2,19 +2,31 @@ import SwiftData
 import SwiftUI
 
 struct DictationView: View {
+    private struct DictationUnitGroup: Identifiable {
+        let groupNumber: Int
+        let words: [VocabularyEntry]
+
+        var id: Int { groupNumber }
+    }
+
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var dictationProgress: DictationProgressStore
     @Query private var sessions: [DictationSession]
-    /// Dictation units use noun lemmas only (verbs/adjectives use vocabulary cards).
-    @Query(
-        filter: #Predicate<VocabularyEntry> { $0.entryKind == nil || $0.entryKind == "noun" },
-        sort: \VocabularyEntry.seedNumber
-    )
+    /// Dictation units include all imported seed entries.
+    @Query(sort: \VocabularyEntry.seedNumber)
     private var entries: [VocabularyEntry]
 
-    private var unitCount: Int {
-        guard !entries.isEmpty else { return 0 }
-        return (entries.count + 49) / 50
+    private var unitGroups: [DictationUnitGroup] {
+        guard !entries.isEmpty else { return [] }
+        let grouped = Dictionary(grouping: entries) { groupNumber(for: $0) }
+        return grouped
+            .map { group, words in
+                DictationUnitGroup(
+                    groupNumber: group,
+                    words: words.sorted { $0.seedNumber < $1.seedNumber }
+                )
+            }
+            .sorted { $0.groupNumber < $1.groupNumber }
     }
 
     var body: some View {
@@ -31,15 +43,10 @@ struct DictationView: View {
                         headerCard
 
                         LazyVStack(spacing: 14) {
-                            ForEach(0..<unitCount, id: \.self) { unitIndex in
-                                let range = unitRange(unitIndex: unitIndex)
-                                let low = entries[range.lowerBound].seedNumber
-                                let high = entries[range.upperBound - 1].seedNumber
+                            ForEach(unitGroups) { unit in
                                 unitCard(
-                                    unitIndex: unitIndex,
-                                    low: low,
-                                    high: high,
-                                    wordsInUnit: Array(entries[range])
+                                    groupNumber: unit.groupNumber,
+                                    wordsInUnit: unit.words
                                 )
                             }
                         }
@@ -78,20 +85,23 @@ struct DictationView: View {
         .padding(.top, 8)
     }
 
-    private func unitCard(unitIndex: Int, low: Int, high: Int, wordsInUnit: [VocabularyEntry]) -> some View {
+    private func unitCard(groupNumber: Int, wordsInUnit: [VocabularyEntry]) -> some View {
+        let unitIndex = max(0, groupNumber - 1)
         let badge = dictationProgress.badge(for: unitIndex)
+        let low = ((groupNumber - 1) * 50) + 1
+        let high = groupNumber * 50
 
         return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text("Group \(unitIndex + 1)")
+                    Text("Group \(groupNumber)")
                         .font(.caption.weight(.semibold))
                     Text("Words \(low)–\(high)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
-                lastDictationBadge(for: unitIndex)
+                lastDictationBadge(for: groupNumber)
             }
 
             HStack(spacing: 12) {
@@ -132,8 +142,8 @@ struct DictationView: View {
             .minimumScaleFactor(0.8)
     }
 
-    private func lastDictationText(for unitIndex: Int) -> String {
-        let unitScope = "unit_\(unitIndex + 1)"
+    private func lastDictationText(for groupNumber: Int) -> String {
+        let unitScope = "unit_\(groupNumber)"
         let lastDate = sessions
             .filter { $0.sourceScope == unitScope }
             .compactMap { $0.endedAt ?? $0.startedAt }
@@ -186,7 +196,7 @@ struct DictationView: View {
 
     private func reviewWordsPill(unitIndex: Int, wordsInUnit: [VocabularyEntry]) -> some View {
         NavigationLink {
-            DictationSessionView(
+            DictationReviewView(
                 unitIndex: unitIndex,
                 words: wordsInUnit
             )
@@ -209,10 +219,17 @@ struct DictationView: View {
         .buttonStyle(.plain)
     }
 
-    private func unitRange(unitIndex: Int) -> Range<Int> {
-        let start = unitIndex * 50
-        let end = min(start + 50, entries.count)
-        return start..<end
+    private func groupNumber(for entry: VocabularyEntry) -> Int {
+        if let assigned = entry.groupAssigned, assigned > 0 {
+            return assigned
+        }
+        let rawNumber = rawSeedNumber(from: entry.seedNumber)
+        return max(1, ((rawNumber - 1) / 50) + 1)
+    }
+
+    private func rawSeedNumber(from seedNumber: Int) -> Int {
+        let base = seedNumber % 10_000_000
+        return base > 0 ? base : seedNumber
     }
 
     private var relativeFormatter: RelativeDateTimeFormatter {
