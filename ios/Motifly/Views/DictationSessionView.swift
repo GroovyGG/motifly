@@ -1,6 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct DictationSessionView: View {
+    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var dictationProgress: DictationProgressStore
 
     let unitIndex: Int
@@ -13,6 +15,8 @@ struct DictationSessionView: View {
     @State private var wrong = 0
     @State private var sessionDone = false
     @State private var lastWasCorrect: Bool?
+    @State private var currentSessionId: UUID?
+    @State private var promptShownAt: Date = .now
 
     private var activeWords: [VocabularyEntry] {
         let n = min(max(1, wordCount), words.count)
@@ -39,16 +43,30 @@ struct DictationSessionView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             wordCount = min(10, max(1, words.count))
+            resetSession()
+            startNewSession()
         }
         .onChange(of: sessionDone) { _, done in
             if done {
                 let total = correct + wrong
                 dictationProgress.completeSession(unitIndex: unitIndex, correct: correct, total: total)
+                finishCurrentSession(status: "completed")
             }
+        }
+        .onChange(of: currentIndex) { _, _ in
+            promptShownAt = .now
+        }
+        .onChange(of: wordCount) { _, _ in
+            if !sessionDone {
+                finishCurrentSession(status: "abandoned")
+            }
+            resetSession()
+            startNewSession()
         }
         .onDisappear {
             if !sessionDone {
                 dictationProgress.abandonSession(unitIndex: unitIndex)
+                finishCurrentSession(status: "abandoned")
             }
         }
     }
@@ -62,9 +80,6 @@ struct DictationSessionView: View {
                 Text("Repeat count: \(min(wordCount, words.count))")
             }
             .disabled(activeWords.isEmpty)
-        }
-        .onChange(of: wordCount) {
-            resetSession()
         }
     }
 
@@ -130,6 +145,8 @@ struct DictationSessionView: View {
         let ok = DictationNormalization.isMatch(userInput: userInput, expectedLemma: w.frenchLemma)
         lastWasCorrect = ok
         if ok { correct += 1 } else { wrong += 1 }
+        recordAttempt(for: w, isCorrect: ok)
+        updateRunningSessionSummary()
 
         if currentIndex + 1 >= activeWords.count {
             sessionDone = true
@@ -148,15 +165,91 @@ struct DictationSessionView: View {
         wrong = 0
         lastWasCorrect = nil
         sessionDone = false
+        promptShownAt = .now
+    }
+
+    private func startNewSession() {
+        guard !activeWords.isEmpty else { return }
+        let session = DictationSession(
+            sourceScope: "unit_\(unitIndex + 1)",
+            orderMode: "current",
+            timingProfileJSON: "{}",
+            plannedCount: activeWords.count
+        )
+        modelContext.insert(session)
+        try? modelContext.save()
+        currentSessionId = session.id
+    }
+
+    private func recordAttempt(for word: VocabularyEntry, isCorrect: Bool) {
+        guard let sessionId = currentSessionId else { return }
+        let now = Date()
+        let elapsedMs = max(0, Int(now.timeIntervalSince(promptShownAt) * 1000.0))
+        let normalizedExpected = DictationNormalization.normalize(word.frenchLemma)
+        let normalizedInput = DictationNormalization.normalize(userInput)
+        let attempt = DictationAttemptLog(
+            sessionId: sessionId,
+            seedNumber: word.seedNumber,
+            promptIndex: currentIndex,
+            expectedLemma: word.frenchLemma,
+            userInput: userInput,
+            normalizedExpected: normalizedExpected,
+            normalizedInput: normalizedInput,
+            isCorrect: isCorrect,
+            promptShownAt: promptShownAt,
+            submittedAt: now,
+            elapsedMs: elapsedMs,
+            replayCount: 0,
+            playTraceJSON: "[]",
+            errorType: isCorrect ? nil : "other"
+        )
+        modelContext.insert(attempt)
+        try? modelContext.save()
+    }
+
+    private func updateRunningSessionSummary() {
+        guard let sessionId = currentSessionId else { return }
+        let fd = FetchDescriptor<DictationSession>(
+            predicate: #Predicate<DictationSession> { $0.id == sessionId }
+        )
+        guard let session = try? modelContext.fetch(fd).first else { return }
+        session.attemptedCount = correct + wrong
+        session.correctCount = correct
+        session.wrongCount = wrong
+        try? modelContext.save()
+    }
+
+    private func finishCurrentSession(status: String) {
+        guard let sessionId = currentSessionId else { return }
+        let fd = FetchDescriptor<DictationSession>(
+            predicate: #Predicate<DictationSession> { $0.id == sessionId }
+        )
+        guard let session = try? modelContext.fetch(fd).first else { return }
+        session.attemptedCount = correct + wrong
+        session.correctCount = correct
+        session.wrongCount = wrong
+        session.status = status
+        session.endedAt = .now
+        try? modelContext.save()
+        currentSessionId = nil
     }
 }
 
 #Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: VocabularyEntry.self,
+        SearchHistoryEntry.self,
+        DictationSession.self,
+        DictationAttemptLog.self,
+        configurations: config
+    )
     NavigationStack {
         DictationSessionView(
             unitIndex: 0,
             words: []
         )
     }
+    .modelContainer(container)
     .environmentObject(DictationProgressStore())
 }
