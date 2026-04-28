@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct DictationSessionView: View {
     @Environment(\.modelContext) private var modelContext
@@ -17,6 +17,7 @@ struct DictationSessionView: View {
     @State private var wrong = 0
     @State private var sessionDone = false
     @State private var lastWasCorrect: Bool?
+    @State private var showResultHint = false
     @State private var currentSessionId: UUID?
     @State private var promptShownAt: Date = .now
     @StateObject private var playbackEngine = DictationPlaybackEngine()
@@ -24,6 +25,11 @@ struct DictationSessionView: View {
     @State private var autoPasses: [DictationPlaybackPass] = DictationTimingProfile.autoDefault.passes
     @State private var promptReplayCount = 0
     @State private var promptTraceEvents: [DictationPlaybackTraceEvent] = []
+
+    private let frenchCharacterRows: [[String]] = [
+        ["à", "â", "æ", "ç", "é", "è", "ê", "ë"],
+        ["î", "ï", "ô", "œ", "ù", "û", "ü", "ÿ"],
+    ]
 
     private var activeWords: [VocabularyEntry] {
         let n = min(max(1, wordCount), orderedUnitWords.count)
@@ -36,17 +42,22 @@ struct DictationSessionView: View {
     }
 
     var body: some View {
-        VStack(spacing: 20) {
-            if sessionDone {
-                sessionSummary
-            } else {
-                controls
-                promptCard
-                inputArea
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                if sessionDone {
+                    sessionSummary
+                } else {
+                    progressHeader
+                    controls
+                    promptCard
+                    frenchCharactersSection
+                    nextWordSection
+                }
             }
+            .padding(16)
         }
-        .padding()
-        .navigationTitle("Unit \(unitIndex + 1)")
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .navigationTitle("Dictation")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             refreshOrderedWords()
@@ -90,9 +101,6 @@ struct DictationSessionView: View {
             }
             resetSession()
             startNewSession()
-            if isAutoMode {
-                Task { await playCurrentPrompt(isUserReplay: false) }
-            }
         }
         .onChange(of: autoPasses) { _, _ in
             if !sessionDone {
@@ -100,9 +108,6 @@ struct DictationSessionView: View {
             }
             resetSession()
             startNewSession()
-            if isAutoMode {
-                Task { await playCurrentPrompt(isUserReplay: false) }
-            }
         }
         .onDisappear {
             if !sessionDone {
@@ -112,15 +117,28 @@ struct DictationSessionView: View {
         }
     }
 
+    private var progressHeader: some View {
+        HStack(spacing: 10) {
+            ProgressView(value: Double(currentIndex + 1), total: Double(max(1, activeWords.count)))
+                .tint(.blue)
+            Text("\(min(currentIndex + 1, activeWords.count))/\(activeWords.count)")
+                .font(.headline)
+                .foregroundStyle(.blue)
+        }
+        .padding(.top, 4)
+    }
+
     private var controls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Words in this session: \(activeWords.count) / \(orderedUnitWords.count) in unit")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Stepper(value: $wordCount, in: 1...max(1, orderedUnitWords.count)) {
-                Text("Repeat count: \(min(wordCount, orderedUnitWords.count))")
+        VStack(alignment: .leading, spacing: 10) {
+            Picker("Mode", selection: $isAutoMode) {
+                Text("Manual Mode").tag(false)
+                Text("Auto Mode").tag(true)
             }
-            .disabled(activeWords.isEmpty)
+            .pickerStyle(.segmented)
+
+            if isAutoMode {
+                autoSequenceEditor
+            }
 
             Picker("Order mode", selection: $orderMode) {
                 ForEach(DictationOrderMode.allCases) { mode in
@@ -129,45 +147,64 @@ struct DictationSessionView: View {
             }
             .pickerStyle(.segmented)
 
-            Picker("Play mode", selection: $isAutoMode) {
-                Text("Manual").tag(false)
-                Text("Auto").tag(true)
+            Stepper(value: $wordCount, in: 1...max(1, orderedUnitWords.count)) {
+                Text("Words this session: \(min(wordCount, orderedUnitWords.count)) / \(orderedUnitWords.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .pickerStyle(.segmented)
-
-            if isAutoMode {
-                autoSequenceEditor
-            }
+            .disabled(activeWords.isEmpty)
         }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
     }
 
     private var autoSequenceEditor: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Auto sequence")
-                .font(.caption)
+            Text("Auto Mode Sequence")
+                .font(.headline)
+            Text("Timing can be edited")
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
-            ForEach(autoPasses.indices, id: \.self) { idx in
-                HStack(spacing: 12) {
-                    Text("Pass \(idx + 1)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 44, alignment: .leading)
-                    Picker("Source", selection: bindingSource(at: idx)) {
-                        ForEach(DictationPlaybackSource.allCases) { source in
-                            Text(source.title).tag(source)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(autoPasses.indices, id: \.self) { idx in
+                        HStack(spacing: 6) {
+                            Text("Play")
+                            Picker("Source", selection: bindingSource(at: idx)) {
+                                ForEach(DictationPlaybackSource.allCases) { source in
+                                    Text(source.title).tag(source)
+                                }
+                            }
+                            .pickerStyle(.menu)
+
+                            Text("·")
+
+                            Stepper(value: bindingDelay(at: idx), in: 0...10, step: 1) {
+                                Text("\(Int(autoPasses[idx].delayAfterSeconds))s")
+                                    .font(.callout.weight(.semibold))
+                            }
+                            .labelsHidden()
+
+                            if idx < autoPasses.count - 1 {
+                                Text("·")
+                            } else {
+                                Text("· Next")
+                            }
                         }
+                        .font(.caption)
                     }
-                    .pickerStyle(.segmented)
-                    Stepper(
-                        "\(Int(autoPasses[idx].delayAfterSeconds))s",
-                        value: bindingDelay(at: idx),
-                        in: 0...10,
-                        step: 1
-                    )
-                    .labelsHidden()
                 }
             }
         }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(.tertiarySystemFill))
+        )
     }
 
     private func bindingSource(at index: Int) -> Binding<DictationPlaybackSource> {
@@ -186,50 +223,88 @@ struct DictationSessionView: View {
 
     private var promptCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if let w = current {
-                Text("Type the French headword for:")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text(w.english)
-                    .font(.title2)
-                    .fontWeight(.medium)
-                Text("Progress: \(currentIndex + 1) / \(activeWords.count)")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+            HStack(alignment: .center) {
+                Text("Type what you hear")
+                    .font(.title3.weight(.semibold))
+                Spacer()
+                Button {
+                    Task { await playCurrentPrompt(isUserReplay: true) }
+                } label: {
+                    Image(systemName: "speaker.wave.2.fill")
+                        .font(.title3)
+                        .foregroundStyle(.blue)
+                        .frame(width: 42, height: 42)
+                        .background(Circle().fill(Color.blue.opacity(0.12)))
+                }
+                .buttonStyle(.plain)
+                .disabled(current == nil)
             }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemGroupedBackground)))
-    }
 
-    private var inputArea: some View {
-        VStack(spacing: 12) {
-            TextField("French lemma", text: $userInput)
+            TextField("Enter French text", text: $userInput)
                 .textFieldStyle(.roundedBorder)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
 
-            if let ok = lastWasCorrect {
+            if let ok = lastWasCorrect, showResultHint {
                 Text(ok ? "Correct" : "Incorrect")
-                    .font(.subheadline)
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(ok ? .green : .red)
             }
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
+    }
 
-            HStack {
-                Button("Play Audio") {
-                    Task { await playCurrentPrompt(isUserReplay: true) }
-                }
-                .buttonStyle(.bordered)
-                .disabled(current == nil)
+    private var frenchCharactersSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("French characters")
+                .font(.title3.weight(.medium))
 
-                Button("Check & Next") {
-                    submitStep()
+            VStack(spacing: 8) {
+                ForEach(frenchCharacterRows, id: \.self) { row in
+                    HStack(spacing: 8) {
+                        ForEach(row, id: \.self) { char in
+                            Button(char) {
+                                userInput.append(char)
+                            }
+                            .font(.title3)
+                            .frame(maxWidth: .infinity, minHeight: 42)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(Color(.secondarySystemGroupedBackground))
+                            )
+                        }
+                    }
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(current == nil)
             }
         }
+    }
+
+    private var nextWordSection: some View {
+        Button {
+            submitStep()
+        } label: {
+            HStack {
+                Text("Next Word")
+                    .font(.title3.weight(.semibold))
+                Spacer()
+                Image(systemName: "arrow.right")
+                    .font(.title3.weight(.semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 18)
+            .frame(height: 56)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.blue)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(current == nil)
+        .opacity(current == nil ? 0.5 : 1)
     }
 
     private var sessionSummary: some View {
@@ -241,16 +316,23 @@ struct DictationSessionView: View {
             Button("Again") {
                 resetSession()
                 sessionDone = false
+                startNewSession()
             }
             .buttonStyle(.bordered)
         }
         .frame(maxWidth: .infinity)
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
     }
 
     private func submitStep() {
         guard let w = current else { return }
         let ok = DictationNormalization.isMatch(userInput: userInput, expectedLemma: w.frenchLemma)
         lastWasCorrect = ok
+        showResultHint = true
         if ok { correct += 1 } else { wrong += 1 }
         recordAttempt(for: w, isCorrect: ok)
         updateRunningSessionSummary()
@@ -263,6 +345,7 @@ struct DictationSessionView: View {
         currentIndex += 1
         userInput = ""
         lastWasCorrect = nil
+        showResultHint = false
     }
 
     private func resetSession() {
@@ -272,6 +355,7 @@ struct DictationSessionView: View {
         wrong = 0
         lastWasCorrect = nil
         sessionDone = false
+        showResultHint = false
         promptShownAt = .now
         resetPromptPlaybackState()
     }
@@ -301,6 +385,10 @@ struct DictationSessionView: View {
         modelContext.insert(session)
         try? modelContext.save()
         currentSessionId = session.id
+
+        if isAutoMode {
+            Task { await playCurrentPrompt(isUserReplay: false) }
+        }
     }
 
     private func recordAttempt(for word: VocabularyEntry, isCorrect: Bool) {
