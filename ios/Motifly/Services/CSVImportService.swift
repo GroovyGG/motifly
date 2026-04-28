@@ -2,13 +2,13 @@ import Foundation
 import SwiftData
 
 enum CSVImportService {
-    private static let nounImportFlagKey = "motifly.csvImport.seedNouns.v3.done"
-    private static let verbImportFlagKey = "motifly.csvImport.seedVerbs.v2.done"
-    private static let adjectiveImportFlagKey = "motifly.csvImport.seedAdjectives.v2.done"
-    private static let adverbImportFlagKey = "motifly.csvImport.seedAdverbs.v2.done"
-    private static let determinerImportFlagKey = "motifly.csvImport.seedDeterminers.v2.done"
-    private static let pronounImportFlagKey = "motifly.csvImport.seedPronouns.v2.done"
-    private static let prepositionImportFlagKey = "motifly.csvImport.seedPrepositions.v1.done"
+    private static let nounImportFlagKey = "motifly.csvImport.seedNouns.v4.done"
+    private static let verbImportFlagKey = "motifly.csvImport.seedVerbs.v3.done"
+    private static let adjectiveImportFlagKey = "motifly.csvImport.seedAdjectives.v3.done"
+    private static let adverbImportFlagKey = "motifly.csvImport.seedAdverbs.v3.done"
+    private static let determinerImportFlagKey = "motifly.csvImport.seedDeterminers.v3.done"
+    private static let pronounImportFlagKey = "motifly.csvImport.seedPronouns.v3.done"
+    private static let prepositionImportFlagKey = "motifly.csvImport.seedPrepositions.v2.done"
     private static let legacyImportFlagKey = "motifly.csvImport.v1.done"
 
     private static let bundledNounsName = "seed_nouns"
@@ -353,6 +353,7 @@ enum CSVImportService {
                 for row in batch {
                     let entry = VocabularyEntry(
                         seedNumber: row.seedNumber,
+                        groupAssigned: row.groupAssigned,
                         frenchLemma: row.frenchLemma,
                         english: row.english,
                         pos: row.pos,
@@ -605,6 +606,7 @@ enum CSVImportService {
 
     private struct ParsedNounRow {
         let seedNumber: Int
+        let groupAssigned: Int?
         let frenchLemma: String
         let english: String
         let pos: String
@@ -648,10 +650,12 @@ enum CSVImportService {
             }
 
             guard let num = Int(row["number"]?.trimmingCharacters(in: .whitespaces) ?? "") else { continue }
+            let groupAssigned = Int(row["group assigned"]?.trimmingCharacters(in: .whitespaces) ?? "")
 
             out.append(
                 ParsedNounRow(
                     seedNumber: num,
+                    groupAssigned: groupAssigned,
                     frenchLemma: row["french_lemma"] ?? "",
                     english: row["english"] ?? "",
                     pos: row["pos"] ?? "",
