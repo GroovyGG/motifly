@@ -4,6 +4,7 @@ import SwiftUI
 struct DictationView: View {
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var dictationProgress: DictationProgressStore
+    @Query private var sessions: [DictationSession]
     /// Dictation units use noun lemmas only (verbs/adjectives use vocabulary cards).
     @Query(
         filter: #Predicate<VocabularyEntry> { $0.entryKind == nil || $0.entryKind == "noun" },
@@ -34,22 +35,12 @@ struct DictationView: View {
                                 let range = unitRange(unitIndex: unitIndex)
                                 let low = entries[range.lowerBound].seedNumber
                                 let high = entries[range.upperBound - 1].seedNumber
-                                let wordCountInUnit = range.count
-
-                                NavigationLink {
-                                    DictationSessionView(
-                                        unitIndex: unitIndex,
-                                        words: Array(entries[range])
-                                    )
-                                } label: {
-                                    unitCard(
-                                        unitIndex: unitIndex,
-                                        low: low,
-                                        high: high,
-                                        wordCountInUnit: wordCountInUnit
-                                    )
-                                }
-                                .buttonStyle(.plain)
+                                unitCard(
+                                    unitIndex: unitIndex,
+                                    low: low,
+                                    high: high,
+                                    wordsInUnit: Array(entries[range])
+                                )
                             }
                         }
                     }
@@ -74,19 +65,9 @@ struct DictationView: View {
     }
 
     private var headerCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("MOTIFLY")
-                .font(.caption.weight(.semibold))
-                .tracking(2)
-                .foregroundStyle(.tertiary)
-
+        VStack(alignment: .leading, spacing: 0) {
             Text("Dictation")
                 .font(.title.bold())
-
-            Text("Each unit contains 50 words. Tap a group to set dictation requirements.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
@@ -97,31 +78,32 @@ struct DictationView: View {
         .padding(.top, 8)
     }
 
-    private func unitCard(unitIndex: Int, low: Int, high: Int, wordCountInUnit: Int) -> some View {
+    private func unitCard(unitIndex: Int, low: Int, high: Int, wordsInUnit: [VocabularyEntry]) -> some View {
         let badge = dictationProgress.badge(for: unitIndex)
 
-        return VStack(alignment: .leading, spacing: 14) {
+        return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text("Group \(unitIndex + 1)")
-                        .font(.headline)
+                        .font(.caption.weight(.semibold))
                     Text("Words \(low)–\(high)")
-                        .font(.subheadline)
+                        .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
-                statusBadge(badge)
+                lastDictationBadge(for: unitIndex)
             }
 
             HStack(spacing: 12) {
-                statPill(title: "Words", value: "\(wordCountInUnit)")
                 statPill(
                     title: "Accuracy",
                     value: accuracyText(for: badge)
                 )
+                reviewWordsPill(unitIndex: unitIndex, wordsInUnit: wordsInUnit)
+                startDictationPill(unitIndex: unitIndex, wordsInUnit: wordsInUnit)
             }
         }
-        .padding(16)
+        .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(Color(.systemBackground))
@@ -138,44 +120,105 @@ struct DictationView: View {
         }
     }
 
-    private func statusBadge(_ badge: DictationUnitBadge) -> some View {
-        let colors: (Color, Color) = switch badge {
-        case .started:
-            (Color.green.opacity(0.18), Color.green.opacity(0.85))
-        case .due:
-            (Color.orange.opacity(0.2), Color.orange.opacity(0.95))
-        case .new:
-            (Color(.tertiarySystemFill), Color.secondary)
-        }
-        return Text(badge.title)
+    private func lastDictationBadge(for unitIndex: Int) -> some View {
+        let text = lastDictationText(for: unitIndex)
+        return Text(text)
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(Capsule().fill(colors.0))
-            .foregroundStyle(colors.1)
+            .background(Capsule().fill(Color(.tertiarySystemFill)))
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+    }
+
+    private func lastDictationText(for unitIndex: Int) -> String {
+        let unitScope = "unit_\(unitIndex + 1)"
+        let lastDate = sessions
+            .filter { $0.sourceScope == unitScope }
+            .compactMap { $0.endedAt ?? $0.startedAt }
+            .max()
+        guard let lastDate else { return "Never" }
+        return "Last: \(relativeFormatter.localizedString(for: lastDate, relativeTo: .now))"
     }
 
     private func statPill(title: String, value: String) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             Text(title)
-                .font(.caption)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
             Text(value)
-                .font(.title2.weight(.bold))
+                .font(.title3.weight(.bold))
                 .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(.tertiarySystemGroupedBackground))
         )
     }
 
+    private func startDictationPill(unitIndex: Int, wordsInUnit: [VocabularyEntry]) -> some View {
+        NavigationLink {
+            DictationSessionView(
+                unitIndex: unitIndex,
+                words: wordsInUnit
+            )
+        } label: {
+            VStack(spacing: 4) {
+                Text("Start")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.9))
+                Text("Dictation")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color.blue)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func reviewWordsPill(unitIndex: Int, wordsInUnit: [VocabularyEntry]) -> some View {
+        NavigationLink {
+            DictationSessionView(
+                unitIndex: unitIndex,
+                words: wordsInUnit
+            )
+        } label: {
+            VStack(spacing: 4) {
+                Text("Review")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("Words")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.primary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(.tertiarySystemGroupedBackground))
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
     private func unitRange(unitIndex: Int) -> Range<Int> {
         let start = unitIndex * 50
         let end = min(start + 50, entries.count)
         return start..<end
+    }
+
+    private var relativeFormatter: RelativeDateTimeFormatter {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter
     }
 }
 
@@ -184,6 +227,7 @@ struct DictationView: View {
     let container = try! ModelContainer(
         for: VocabularyEntry.self,
         SearchHistoryEntry.self,
+        DictationSession.self,
         configurations: config
     )
     return NavigationStack {
