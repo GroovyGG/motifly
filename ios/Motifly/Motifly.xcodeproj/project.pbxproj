@@ -35,6 +35,8 @@
 		BF1A /* PronounWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1A /* PronounWordCardView.swift */; };
 		BF1B /* seed_prepositions.csv in Resources */ = {isa = PBXBuildFile; fileRef = FR1B /* seed_prepositions.csv */; };
 		BF1C /* PrepositionWordCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1C /* PrepositionWordCardView.swift */; };
+		BF1D /* DictationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1D /* DictationSession.swift */; };
+		BF1E /* DictationAttemptLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1E /* DictationAttemptLog.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,6 +69,8 @@
 		FR1A /* PronounWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PronounWordCardView.swift; sourceTree = "<group>"; };
 		FR1B /* seed_prepositions.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = seed_prepositions.csv; sourceTree = "<group>"; };
 		FR1C /* PrepositionWordCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrepositionWordCardView.swift; sourceTree = "<group>"; };
+		FR1D /* DictationSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationSession.swift; sourceTree = "<group>"; };
+		FR1E /* DictationAttemptLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationAttemptLog.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +132,8 @@
 			children = (
 				FR03 /* VocabularyEntry.swift */,
 				FR04 /* SearchHistoryEntry.swift */,
+				FR1D /* DictationSession.swift */,
+				FR1E /* DictationAttemptLog.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -242,6 +248,8 @@
 				BF02 /* ContentView.swift in Sources */,
 				BF03 /* VocabularyEntry.swift in Sources */,
 				BF04 /* SearchHistoryEntry.swift in Sources */,
+				BF1D /* DictationSession.swift in Sources */,
+				BF1E /* DictationAttemptLog.swift in Sources */,
 				BF05 /* CSVImportService.swift in Sources */,
 				BF06 /* DictationNormalization.swift in Sources */,
 				BF07 /* SearchHistoryService.swift in Sources */,
