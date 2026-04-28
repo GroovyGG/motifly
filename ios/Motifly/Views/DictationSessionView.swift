@@ -391,6 +391,18 @@ struct DictationSessionView: View {
         showResultHint = true
         if ok { correct += 1 } else { wrong += 1 }
         recordAttempt(for: w, isCorrect: ok)
+        StudyEventLogger.record(
+            modelContext: modelContext,
+            seedNumber: w.seedNumber,
+            eventType: "dictation_submit",
+            context: [
+                "screen": "dictation_session",
+                "correct": ok ? "true" : "false",
+                "unit": String(unitIndex + 1),
+                "orderMode": orderMode.rawValue,
+                "autoMode": isAutoMode ? "true" : "false"
+            ]
+        )
         updateRunningSessionSummary()
 
         if currentIndex + 1 >= activeWords.count {
@@ -445,6 +457,18 @@ struct DictationSessionView: View {
         modelContext.insert(session)
         try? modelContext.save()
         currentSessionId = session.id
+        StudyEventLogger.record(
+            modelContext: modelContext,
+            seedNumber: 0,
+            eventType: "dictation_session_start",
+            context: [
+                "screen": "dictation_session",
+                "unit": String(unitIndex + 1),
+                "orderMode": orderMode.rawValue,
+                "autoMode": isAutoMode ? "true" : "false",
+                "plannedCount": String(activeWords.count)
+            ]
+        )
     }
 
     private func recordAttempt(for word: VocabularyEntry, isCorrect: Bool) {
@@ -513,6 +537,17 @@ struct DictationSessionView: View {
     }
 
     private func triggerPromptPlayback(isUserReplay: Bool) {
+        if let word = current {
+            StudyEventLogger.record(
+                modelContext: modelContext,
+                seedNumber: word.seedNumber,
+                eventType: isUserReplay ? "dictation_replay" : "dictation_prompt_play",
+                context: [
+                    "screen": "dictation_session",
+                    "autoMode": isAutoMode ? "true" : "false"
+                ]
+            )
+        }
         playbackTask?.cancel()
         playbackTask = Task {
             await playCurrentPrompt(isUserReplay: isUserReplay)
@@ -557,6 +592,19 @@ struct DictationSessionView: View {
         session.status = status
         session.endedAt = .now
         try? modelContext.save()
+        StudyEventLogger.record(
+            modelContext: modelContext,
+            seedNumber: 0,
+            eventType: "dictation_session_end",
+            context: [
+                "screen": "dictation_session",
+                "unit": String(unitIndex + 1),
+                "status": status,
+                "attempted": String(correct + wrong),
+                "correct": String(correct),
+                "wrong": String(wrong)
+            ]
+        )
         currentSessionId = nil
         isSessionActive = false
         isAutoPlaybackStarted = false
@@ -591,6 +639,7 @@ private extension Array where Element == DictationPlaybackTraceEvent {
         DictationSession.self,
         DictationAttemptLog.self,
         DictationWordStats.self,
+        VocabularyStudyEvent.self,
         configurations: config
     )
     NavigationStack {
