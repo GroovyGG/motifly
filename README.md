@@ -1,6 +1,18 @@
 # Motifly
 
-French dictation practice on iPhone: listen to a sentence, type what you hear, get structured feedback, and see where grammar and topic areas need work.
+**Motifly** is a **local-first iOS** French study app (SwiftUI, SwiftData, AVFoundation). It bundles CSV vocabulary seeds, imports them into SwiftData on first launch, and offers **searchable dictionary cards** (nouns, verbs, adjectives, adverbs, determiners, pronouns, prepositions) with **French TTS** and optional **user “Mine” recordings** per entry. **Dictation** is a **lemma drill**: you see the **English gloss**, type the **French lemma**; sessions are grouped in **units of 50** and **noun entries only**, with **per-unit accuracy** persisted locally—not full-sentence listening dictation yet.
+
+The repo also documents a **future cloud-backed** model (Postgres, sentence library, scoring API, grammar tags, media uploads). That platform is **not** what the shipped client does today; see **Current architecture** vs **Target architecture** below.
+
+---
+
+## Profile summary (copy for GitHub, LinkedIn, or résumé)
+
+Use this block if you need a **truthful** one-screen description of the project as it exists in this repository.
+
+**Motifly** — Personal iOS project (Swift / SwiftUI / SwiftData). Ships a **device-local French vocabulary** experience: bundled CSV seeds, SwiftData import, **Vocabulary** tab with search, recent lookups, and **kind-specific word cards** (nouns through prepositions). **Audio** uses **on-device** `AVSpeechSynthesizer` for French playback; vocabulary cards support optional **user-recorded “Mine”** takes for comparison. **Dictation** tab: **English prompt → type French lemma**, normalization-based check, **50-word units** of **nouns only**, with **unit-level accuracy** stored in UserDefaults. **Home** and several card “progress” areas are **placeholders** for future metrics.
+
+**Not implemented in the client yet** (described only as **target** design in `database_schema.md` / README): remote APIs for audio, sentence-level dictation with grammar tagging, retrieval scoring, review logs backed by a server, and real image upload pipelines.
 
 ---
 
