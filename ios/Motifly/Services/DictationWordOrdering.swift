@@ -49,20 +49,32 @@ enum DictationWordOrdering {
         words: [VocabularyEntry],
         modelContext: ModelContext
     ) -> [VocabularyEntry] {
-        let fd = FetchDescriptor<DictationAttemptLog>()
-        let logs = (try? modelContext.fetch(fd)) ?? []
-
+        // Prefer incremental stats table for speed; fallback to full logs if unavailable.
         var attemptsBySeed: [Int: Int] = [:]
         var wrongBySeed: [Int: Int] = [:]
         var lastWrongAtBySeed: [Int: Date] = [:]
 
-        for log in logs {
-            attemptsBySeed[log.seedNumber, default: 0] += 1
-            if !log.isCorrect {
-                wrongBySeed[log.seedNumber, default: 0] += 1
-                let prev = lastWrongAtBySeed[log.seedNumber]
-                if prev == nil || prev! < log.submittedAt {
-                    lastWrongAtBySeed[log.seedNumber] = log.submittedAt
+        let statsFD = FetchDescriptor<DictationWordStats>()
+        let stats = (try? modelContext.fetch(statsFD)) ?? []
+        if !stats.isEmpty {
+            for s in stats {
+                attemptsBySeed[s.seedNumber] = s.attemptCount
+                wrongBySeed[s.seedNumber] = s.wrongCount
+                if let t = s.lastWrongAt {
+                    lastWrongAtBySeed[s.seedNumber] = t
+                }
+            }
+        } else {
+            let logsFD = FetchDescriptor<DictationAttemptLog>()
+            let logs = (try? modelContext.fetch(logsFD)) ?? []
+            for log in logs {
+                attemptsBySeed[log.seedNumber, default: 0] += 1
+                if !log.isCorrect {
+                    wrongBySeed[log.seedNumber, default: 0] += 1
+                    let prev = lastWrongAtBySeed[log.seedNumber]
+                    if prev == nil || prev! < log.submittedAt {
+                        lastWrongAtBySeed[log.seedNumber] = log.submittedAt
+                    }
                 }
             }
         }

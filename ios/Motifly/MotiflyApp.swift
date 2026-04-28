@@ -11,6 +11,7 @@ struct MotiflyApp: App {
             SearchHistoryEntry.self,
             DictationSession.self,
             DictationAttemptLog.self,
+            DictationWordStats.self,
         ])
         do {
             // Ensure Application Support exists before opening the SQLite store.
