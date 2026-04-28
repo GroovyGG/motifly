@@ -12,6 +12,7 @@ struct HomeView: View {
     }
 
     var isImportingVocabulary: Bool = false
+    @AppStorage("motifly.settings.dailyGoalMinutes") private var dailyGoalMinutes = 30
 
     @Query(sort: \VocabularyStudyEvent.occurredAt, order: .reverse) private var studyEvents: [VocabularyStudyEvent]
     @Query(sort: \DictationAttemptLog.submittedAt, order: .reverse) private var attempts: [DictationAttemptLog]
@@ -33,6 +34,7 @@ struct HomeView: View {
                 studyLogCard
                 groupProgressCard
                 vocabularyProgressCard
+                dailyGoalCard
                 weeklyGoalCard
                 debugTimelineLink
             }
@@ -107,7 +109,7 @@ struct HomeView: View {
                 Text("Study Log")
                     .font(.headline)
                 Spacer()
-                Text("Last 2 Months")
+                Text("Last 6 Months")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.blue)
             }
@@ -278,6 +280,29 @@ struct HomeView: View {
         .cardStyle()
     }
 
+    private var dailyGoalCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Image(systemName: "sun.max")
+                    .foregroundStyle(.blue)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Daily Goal")
+                        .font(.subheadline.weight(.semibold))
+                    Text("Study \(dailyGoalMinutes) minutes today")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text("\(String(format: "%.1f", todayHours)) / \(String(format: "%.1f", dailyGoalHours)) h")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.blue)
+            }
+            ProgressView(value: todayHours, total: dailyGoalHours)
+                .tint(.blue)
+        }
+        .cardStyle()
+    }
+
     private var debugTimelineLink: some View {
         NavigationLink {
             DebugStudyTimelineView()
@@ -298,8 +323,22 @@ struct HomeView: View {
         return attempts.filter { $0.submittedAt >= start }
     }
 
+    private var todayAttempts: [DictationAttemptLog] {
+        let cal = Calendar.current
+        let start = cal.startOfDay(for: Date())
+        return attempts.filter { $0.submittedAt >= start }
+    }
+
     private var weeklyHours: Double {
         Double(weeklyAttempts.reduce(0) { $0 + max(0, $1.elapsedMs) }) / 3_600_000.0
+    }
+
+    private var todayHours: Double {
+        Double(todayAttempts.reduce(0) { $0 + max(0, $1.elapsedMs) }) / 3_600_000.0
+    }
+
+    private var dailyGoalHours: Double {
+        max(1.0 / 60.0, Double(dailyGoalMinutes) / 60.0)
     }
 
     private var weeklyHoursText: String {
@@ -342,7 +381,7 @@ struct HomeView: View {
     private var heatmapColumns: [[Int]] {
         let cal = Calendar.current
         let now = Date()
-        guard let start = cal.date(byAdding: .day, value: -59, to: now) else { return [] }
+        guard let start = cal.date(byAdding: .day, value: -181, to: now) else { return [] }
         let dayCounts = Dictionary(grouping: studyEvents.map { cal.startOfDay(for: $0.occurredAt) }) { $0 }.mapValues(\.count)
         let maxCount = max(1, dayCounts.values.max() ?? 1)
         var columns: [[Int]] = []
