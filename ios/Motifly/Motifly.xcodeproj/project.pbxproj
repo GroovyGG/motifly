@@ -41,6 +41,8 @@
 		BF20 /* DictationPlaybackEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR20 /* DictationPlaybackEngine.swift */; };
 		BF21 /* DictationWordStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR21 /* DictationWordStats.swift */; };
 		BF22 /* DictationReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR22 /* DictationReviewView.swift */; };
+		BF23 /* VocabularyStudyEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR23 /* VocabularyStudyEvent.swift */; };
+		BF24 /* StudyEventLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR24 /* StudyEventLogger.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +81,8 @@
 		FR20 /* DictationPlaybackEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationPlaybackEngine.swift; sourceTree = "<group>"; };
 		FR21 /* DictationWordStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationWordStats.swift; sourceTree = "<group>"; };
 		FR22 /* DictationReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationReviewView.swift; sourceTree = "<group>"; };
+		FR23 /* VocabularyStudyEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyStudyEvent.swift; sourceTree = "<group>"; };
+		FR24 /* StudyEventLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyEventLogger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,6 +147,7 @@
 				FR1D /* DictationSession.swift */,
 				FR1E /* DictationAttemptLog.swift */,
 				FR21 /* DictationWordStats.swift */,
+				FR23 /* VocabularyStudyEvent.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -157,6 +162,7 @@
 				FR10 /* MinePronunciationService.swift */,
 				FR1F /* DictationWordOrdering.swift */,
 				FR20 /* DictationPlaybackEngine.swift */,
+				FR24 /* StudyEventLogger.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -263,6 +269,7 @@
 				BF1D /* DictationSession.swift in Sources */,
 				BF1E /* DictationAttemptLog.swift in Sources */,
 				BF21 /* DictationWordStats.swift in Sources */,
+				BF23 /* VocabularyStudyEvent.swift in Sources */,
 				BF05 /* CSVImportService.swift in Sources */,
 				BF06 /* DictationNormalization.swift in Sources */,
 				BF07 /* SearchHistoryService.swift in Sources */,
@@ -282,6 +289,7 @@
 				BF10 /* MinePronunciationService.swift in Sources */,
 				BF1F /* DictationWordOrdering.swift in Sources */,
 				BF20 /* DictationPlaybackEngine.swift in Sources */,
+				BF24 /* StudyEventLogger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
