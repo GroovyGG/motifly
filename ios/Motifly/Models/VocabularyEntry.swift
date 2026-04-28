@@ -4,6 +4,7 @@ import SwiftData
 @Model
 final class VocabularyEntry {
     @Attribute(.unique) var seedNumber: Int
+    var groupAssigned: Int?
     var frenchLemma: String
     var english: String
     var pos: String
@@ -114,6 +115,7 @@ final class VocabularyEntry {
 
     init(
         seedNumber: Int,
+        groupAssigned: Int? = nil,
         frenchLemma: String,
         english: String,
         pos: String,
@@ -179,6 +181,7 @@ final class VocabularyEntry {
         prepExampleTargetForm: String? = nil
     ) {
         self.seedNumber = seedNumber
+        self.groupAssigned = groupAssigned
         self.frenchLemma = frenchLemma
         self.english = english
         self.pos = pos
