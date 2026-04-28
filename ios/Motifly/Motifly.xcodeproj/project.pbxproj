@@ -40,6 +40,7 @@
 		BF1F /* DictationWordOrdering.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1F /* DictationWordOrdering.swift */; };
 		BF20 /* DictationPlaybackEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR20 /* DictationPlaybackEngine.swift */; };
 		BF21 /* DictationWordStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR21 /* DictationWordStats.swift */; };
+		BF22 /* DictationReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR22 /* DictationReviewView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -77,6 +78,7 @@
 		FR1F /* DictationWordOrdering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationWordOrdering.swift; sourceTree = "<group>"; };
 		FR20 /* DictationPlaybackEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationPlaybackEngine.swift; sourceTree = "<group>"; };
 		FR21 /* DictationWordStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationWordStats.swift; sourceTree = "<group>"; };
+		FR22 /* DictationReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationReviewView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +168,7 @@
 				FR09 /* VocabularyView.swift */,
 				FR0A /* DictationView.swift */,
 				FR0B /* DictationSessionView.swift */,
+				FR22 /* DictationReviewView.swift */,
 				FR0F /* NounWordCardView.swift */,
 				FR12 /* VerbWordCardView.swift */,
 				FR13 /* AdjectiveWordCardView.swift */,
@@ -267,6 +270,7 @@
 				BF09 /* VocabularyView.swift in Sources */,
 				BF0A /* DictationView.swift in Sources */,
 				BF0B /* DictationSessionView.swift in Sources */,
+				BF22 /* DictationReviewView.swift in Sources */,
 				BF0F /* NounWordCardView.swift in Sources */,
 				BF12 /* VerbWordCardView.swift in Sources */,
 				BF13 /* AdjectiveWordCardView.swift in Sources */,
