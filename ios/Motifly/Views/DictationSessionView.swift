@@ -8,7 +8,6 @@ struct DictationSessionView: View {
     let unitIndex: Int
     let words: [VocabularyEntry]
 
-    @State private var wordCount: Int = 10
     @State private var orderMode: DictationOrderMode = .random
     @State private var orderedUnitWords: [VocabularyEntry] = []
     @State private var currentIndex = 0
@@ -33,8 +32,7 @@ struct DictationSessionView: View {
     ]
 
     private var activeWords: [VocabularyEntry] {
-        let n = min(max(1, wordCount), orderedUnitWords.count)
-        return Array(orderedUnitWords.prefix(n))
+        orderedUnitWords
     }
 
     private var current: VocabularyEntry? {
@@ -51,7 +49,7 @@ struct DictationSessionView: View {
                     preSessionSetup
                 } else {
                     progressHeader
-                    controls
+                    activeSessionControls
                     promptCard
                     frenchCharactersSection
                     nextWordSection
@@ -64,7 +62,6 @@ struct DictationSessionView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             refreshOrderedWords()
-            wordCount = min(10, max(1, orderedUnitWords.count))
             resetSession()
         }
         .onChange(of: sessionDone) { _, done in
@@ -81,18 +78,11 @@ struct DictationSessionView: View {
                 Task { await playCurrentPrompt(isUserReplay: false) }
             }
         }
-        .onChange(of: wordCount) { _, _ in
-            if isSessionActive && !sessionDone {
-                finishCurrentSession(status: "abandoned")
-            }
-            resetSession()
-        }
         .onChange(of: orderMode) { _, _ in
             if isSessionActive && !sessionDone {
                 finishCurrentSession(status: "abandoned")
             }
             refreshOrderedWords()
-            wordCount = min(max(1, wordCount), max(1, orderedUnitWords.count))
             resetSession()
         }
         .onChange(of: isAutoMode) { _, _ in
@@ -181,12 +171,33 @@ struct DictationSessionView: View {
             }
             .pickerStyle(.segmented)
 
-            Stepper(value: $wordCount, in: 1...max(1, orderedUnitWords.count)) {
-                Text("Words this session: \(min(wordCount, orderedUnitWords.count)) / \(orderedUnitWords.count)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            Text("Words this session: \(orderedUnitWords.count) / \(orderedUnitWords.count)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
+    }
+
+    /// Controls shown after session starts: keep mode/timing and word count, hide ordering.
+    private var activeSessionControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Picker("Mode", selection: $isAutoMode) {
+                Text("Manual Mode").tag(false)
+                Text("Auto Mode").tag(true)
             }
-            .disabled(activeWords.isEmpty)
+            .pickerStyle(.segmented)
+
+            if isAutoMode {
+                autoSequenceEditor
+            }
+
+            Text("Words this session: \(orderedUnitWords.count) / \(orderedUnitWords.count)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .padding(14)
         .background(
