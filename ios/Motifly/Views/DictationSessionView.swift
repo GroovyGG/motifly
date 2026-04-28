@@ -22,9 +22,11 @@ struct DictationSessionView: View {
     @StateObject private var playbackEngine = DictationPlaybackEngine()
     @State private var isAutoMode = false
     @State private var autoPasses: [DictationPlaybackPass] = DictationTimingProfile.autoDefault.passes
+    @State private var isAutoPlaybackStarted = false
     @State private var promptReplayCount = 0
     @State private var promptTraceEvents: [DictationPlaybackTraceEvent] = []
     @State private var isSessionActive = false
+    @State private var playbackTask: Task<Void, Never>?
 
     private let frenchCharacterRows: [[String]] = [
         ["à", "â", "æ", "ç", "é", "è", "ê", "ë"],
@@ -52,7 +54,9 @@ struct DictationSessionView: View {
                     activeSessionControls
                     promptCard
                     frenchCharactersSection
-                    nextWordSection
+                    if !isAutoMode {
+                        nextWordSection
+                    }
                 }
             }
             .padding(16)
@@ -74,8 +78,8 @@ struct DictationSessionView: View {
         .onChange(of: currentIndex) { _, _ in
             promptShownAt = .now
             resetPromptPlaybackState()
-            if isAutoMode {
-                Task { await playCurrentPrompt(isUserReplay: false) }
+            if isAutoMode && isAutoPlaybackStarted {
+                triggerPromptPlayback(isUserReplay: false)
             }
         }
         .onChange(of: orderMode) { _, _ in
@@ -86,18 +90,24 @@ struct DictationSessionView: View {
             resetSession()
         }
         .onChange(of: isAutoMode) { _, _ in
-            if isSessionActive && !sessionDone {
-                finishCurrentSession(status: "abandoned")
+            // Mode switch must not auto-start auto playback.
+            if !isAutoMode {
+                isAutoPlaybackStarted = false
+                playbackTask?.cancel()
+                playbackTask = nil
+                playbackEngine.stopCurrentPlayback()
             }
-            resetSession()
         }
         .onChange(of: autoPasses) { _, _ in
-            if isSessionActive && !sessionDone {
-                finishCurrentSession(status: "abandoned")
+            // Editing auto timing should not reset current progress.
+            if isSessionActive && !sessionDone && isAutoMode && isAutoPlaybackStarted {
+                triggerPromptPlayback(isUserReplay: false)
             }
-            resetSession()
         }
         .onDisappear {
+            playbackTask?.cancel()
+            playbackTask = nil
+            playbackEngine.stopCurrentPlayback()
             if isSessionActive && !sessionDone {
                 dictationProgress.abandonSession(unitIndex: unitIndex)
                 finishCurrentSession(status: "abandoned")
@@ -208,39 +218,60 @@ struct DictationSessionView: View {
 
     private var autoSequenceEditor: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Auto Mode Sequence")
-                .font(.headline)
-            Text("Timing can be edited")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            if isSessionActive {
+                Button {
+                    if isAutoPlaybackStarted {
+                        pauseAutoPlayback()
+                    } else {
+                        isAutoPlaybackStarted = true
+                        triggerPromptPlayback(isUserReplay: false)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: isAutoPlaybackStarted ? "pause.fill" : "play.fill")
+                        Text(isAutoPlaybackStarted ? "Pause Auto Play" : "Start Auto Play")
+                            .fontWeight(.semibold)
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.blue)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.blue.opacity(0.12))
+                    )
+                }
+                .buttonStyle(.plain)
+            }
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(autoPasses.indices, id: \.self) { idx in
-                        HStack(spacing: 6) {
-                            Text("Play")
-                            Picker("Source", selection: bindingSource(at: idx)) {
-                                ForEach(DictationPlaybackSource.allCases) { source in
-                                    Text(source.title).tag(source)
+            VStack(spacing: 8) {
+                ForEach(autoPasses.indices, id: \.self) { idx in
+                    HStack {
+                        Text("Play \(idx + 1)")
+                            .font(.caption.weight(.semibold))
+                        Spacer()
+                        Menu {
+                            ForEach(0...10, id: \.self) { sec in
+                                Button("\(sec)s") {
+                                    autoPasses[idx].delayAfterSeconds = Double(sec)
                                 }
                             }
-                            .pickerStyle(.menu)
-
-                            Text("·")
-
-                            Stepper(value: bindingDelay(at: idx), in: 0...10, step: 1) {
+                        } label: {
+                            HStack(spacing: 4) {
                                 Text("\(Int(autoPasses[idx].delayAfterSeconds))s")
-                                    .font(.callout.weight(.semibold))
+                                    .font(.caption.weight(.semibold))
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .font(.caption2)
                             }
-                            .labelsHidden()
-
-                            if idx < autoPasses.count - 1 {
-                                Text("·")
-                            } else {
-                                Text("· Next")
-                            }
+                            .foregroundStyle(.blue)
+                            .padding(.horizontal, 8)
+                            .frame(minWidth: 58)
+                            .frame(height: 28)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(Color(.secondarySystemGroupedBackground))
+                            )
                         }
-                        .font(.caption)
                     }
                 }
             }
@@ -252,28 +283,11 @@ struct DictationSessionView: View {
         )
     }
 
-    private func bindingSource(at index: Int) -> Binding<DictationPlaybackSource> {
-        Binding(
-            get: { autoPasses[index].source },
-            set: { autoPasses[index].source = $0 }
-        )
-    }
-
-    private func bindingDelay(at index: Int) -> Binding<Double> {
-        Binding(
-            get: { autoPasses[index].delayAfterSeconds },
-            set: { autoPasses[index].delayAfterSeconds = $0 }
-        )
-    }
-
     private var promptCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center) {
-                Text("Type what you hear")
-                    .font(.title3.weight(.semibold))
-                Spacer()
                 Button {
-                    Task { await playCurrentPrompt(isUserReplay: true) }
+                    triggerPromptPlayback(isUserReplay: true)
                 } label: {
                     Image(systemName: "speaker.wave.2.fill")
                         .font(.title3)
@@ -283,6 +297,7 @@ struct DictationSessionView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(current == nil)
+                Spacer()
             }
 
             TextField("Enter French text", text: $userInput)
@@ -305,9 +320,6 @@ struct DictationSessionView: View {
 
     private var frenchCharactersSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("French characters")
-                .font(.title3.weight(.medium))
-
             VStack(spacing: 8) {
                 ForEach(frenchCharacterRows, id: \.self) { row in
                     HStack(spacing: 8) {
@@ -400,6 +412,7 @@ struct DictationSessionView: View {
         lastWasCorrect = nil
         sessionDone = false
         isSessionActive = false
+        isAutoPlaybackStarted = false
         showResultHint = false
         promptShownAt = .now
         resetPromptPlaybackState()
@@ -421,6 +434,7 @@ struct DictationSessionView: View {
     private func startNewSession() {
         guard !activeWords.isEmpty else { return }
         isSessionActive = true
+        isAutoPlaybackStarted = false
         let profile = timingProfileForCurrentMode()
         let session = DictationSession(
             sourceScope: "unit_\(unitIndex + 1)",
@@ -431,10 +445,6 @@ struct DictationSessionView: View {
         modelContext.insert(session)
         try? modelContext.save()
         currentSessionId = session.id
-
-        if isAutoMode {
-            Task { await playCurrentPrompt(isUserReplay: false) }
-        }
     }
 
     private func recordAttempt(for word: VocabularyEntry, isCorrect: Bool) {
@@ -496,6 +506,24 @@ struct DictationSessionView: View {
         await playbackEngine.playProfile(word: word, profile: profile) { event in
             promptTraceEvents.append(event)
         }
+        guard !Task.isCancelled else { return }
+        if isAutoMode && isAutoPlaybackStarted && !isUserReplay && isSessionActive && !sessionDone {
+            submitStep()
+        }
+    }
+
+    private func triggerPromptPlayback(isUserReplay: Bool) {
+        playbackTask?.cancel()
+        playbackTask = Task {
+            await playCurrentPrompt(isUserReplay: isUserReplay)
+        }
+    }
+
+    private func pauseAutoPlayback() {
+        isAutoPlaybackStarted = false
+        playbackTask?.cancel()
+        playbackTask = nil
+        playbackEngine.stopCurrentPlayback()
     }
 
     private func timingProfileForCurrentMode() -> DictationTimingProfile {
@@ -531,6 +559,7 @@ struct DictationSessionView: View {
         try? modelContext.save()
         currentSessionId = nil
         isSessionActive = false
+        isAutoPlaybackStarted = false
     }
 }
 
