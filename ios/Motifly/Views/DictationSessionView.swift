@@ -19,6 +19,11 @@ struct DictationSessionView: View {
     @State private var lastWasCorrect: Bool?
     @State private var currentSessionId: UUID?
     @State private var promptShownAt: Date = .now
+    @StateObject private var playbackEngine = DictationPlaybackEngine()
+    @State private var isAutoMode = false
+    @State private var autoPasses: [DictationPlaybackPass] = DictationTimingProfile.autoDefault.passes
+    @State private var promptReplayCount = 0
+    @State private var promptTraceEvents: [DictationPlaybackTraceEvent] = []
 
     private var activeWords: [VocabularyEntry] {
         let n = min(max(1, wordCount), orderedUnitWords.count)
@@ -58,6 +63,10 @@ struct DictationSessionView: View {
         }
         .onChange(of: currentIndex) { _, _ in
             promptShownAt = .now
+            resetPromptPlaybackState()
+            if isAutoMode {
+                Task { await playCurrentPrompt(isUserReplay: false) }
+            }
         }
         .onChange(of: wordCount) { _, _ in
             if !sessionDone {
@@ -74,6 +83,26 @@ struct DictationSessionView: View {
             wordCount = min(max(1, wordCount), max(1, orderedUnitWords.count))
             resetSession()
             startNewSession()
+        }
+        .onChange(of: isAutoMode) { _, _ in
+            if !sessionDone {
+                finishCurrentSession(status: "abandoned")
+            }
+            resetSession()
+            startNewSession()
+            if isAutoMode {
+                Task { await playCurrentPrompt(isUserReplay: false) }
+            }
+        }
+        .onChange(of: autoPasses) { _, _ in
+            if !sessionDone {
+                finishCurrentSession(status: "abandoned")
+            }
+            resetSession()
+            startNewSession()
+            if isAutoMode {
+                Task { await playCurrentPrompt(isUserReplay: false) }
+            }
         }
         .onDisappear {
             if !sessionDone {
@@ -99,7 +128,60 @@ struct DictationSessionView: View {
                 }
             }
             .pickerStyle(.segmented)
+
+            Picker("Play mode", selection: $isAutoMode) {
+                Text("Manual").tag(false)
+                Text("Auto").tag(true)
+            }
+            .pickerStyle(.segmented)
+
+            if isAutoMode {
+                autoSequenceEditor
+            }
         }
+    }
+
+    private var autoSequenceEditor: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Auto sequence")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            ForEach(autoPasses.indices, id: \.self) { idx in
+                HStack(spacing: 12) {
+                    Text("Pass \(idx + 1)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 44, alignment: .leading)
+                    Picker("Source", selection: bindingSource(at: idx)) {
+                        ForEach(DictationPlaybackSource.allCases) { source in
+                            Text(source.title).tag(source)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    Stepper(
+                        "\(Int(autoPasses[idx].delayAfterSeconds))s",
+                        value: bindingDelay(at: idx),
+                        in: 0...10,
+                        step: 1
+                    )
+                    .labelsHidden()
+                }
+            }
+        }
+    }
+
+    private func bindingSource(at index: Int) -> Binding<DictationPlaybackSource> {
+        Binding(
+            get: { autoPasses[index].source },
+            set: { autoPasses[index].source = $0 }
+        )
+    }
+
+    private func bindingDelay(at index: Int) -> Binding<Double> {
+        Binding(
+            get: { autoPasses[index].delayAfterSeconds },
+            set: { autoPasses[index].delayAfterSeconds = $0 }
+        )
     }
 
     private var promptCard: some View {
@@ -135,6 +217,12 @@ struct DictationSessionView: View {
             }
 
             HStack {
+                Button("Play Audio") {
+                    Task { await playCurrentPrompt(isUserReplay: true) }
+                }
+                .buttonStyle(.bordered)
+                .disabled(current == nil)
+
                 Button("Check & Next") {
                     submitStep()
                 }
@@ -185,6 +273,12 @@ struct DictationSessionView: View {
         lastWasCorrect = nil
         sessionDone = false
         promptShownAt = .now
+        resetPromptPlaybackState()
+    }
+
+    private func resetPromptPlaybackState() {
+        promptReplayCount = 0
+        promptTraceEvents = []
     }
 
     private func refreshOrderedWords() {
@@ -197,10 +291,11 @@ struct DictationSessionView: View {
 
     private func startNewSession() {
         guard !activeWords.isEmpty else { return }
+        let profile = timingProfileForCurrentMode()
         let session = DictationSession(
             sourceScope: "unit_\(unitIndex + 1)",
             orderMode: orderMode.rawValue,
-            timingProfileJSON: "{}",
+            timingProfileJSON: profile.toJSON(),
             plannedCount: activeWords.count
         )
         modelContext.insert(session)
@@ -214,6 +309,7 @@ struct DictationSessionView: View {
         let elapsedMs = max(0, Int(now.timeIntervalSince(promptShownAt) * 1000.0))
         let normalizedExpected = DictationNormalization.normalize(word.frenchLemma)
         let normalizedInput = DictationNormalization.normalize(userInput)
+        let traceJSON = promptTraceEvents.toJSON()
         let attempt = DictationAttemptLog(
             sessionId: sessionId,
             seedNumber: word.seedNumber,
@@ -226,12 +322,30 @@ struct DictationSessionView: View {
             promptShownAt: promptShownAt,
             submittedAt: now,
             elapsedMs: elapsedMs,
-            replayCount: 0,
-            playTraceJSON: "[]",
+            replayCount: promptReplayCount,
+            playTraceJSON: traceJSON,
             errorType: isCorrect ? nil : "other"
         )
         modelContext.insert(attempt)
         try? modelContext.save()
+    }
+
+    private func playCurrentPrompt(isUserReplay: Bool) async {
+        guard let word = current else { return }
+        if isUserReplay {
+            promptReplayCount += 1
+        }
+        let profile = timingProfileForCurrentMode()
+        await playbackEngine.playProfile(word: word, profile: profile) { event in
+            promptTraceEvents.append(event)
+        }
+    }
+
+    private func timingProfileForCurrentMode() -> DictationTimingProfile {
+        if isAutoMode {
+            return DictationTimingProfile(mode: "auto", passes: autoPasses)
+        }
+        return DictationTimingProfile.manualDefault
     }
 
     private func updateRunningSessionSummary() {
@@ -259,6 +373,26 @@ struct DictationSessionView: View {
         session.endedAt = .now
         try? modelContext.save()
         currentSessionId = nil
+    }
+}
+
+private extension DictationTimingProfile {
+    func toJSON() -> String {
+        guard let data = try? JSONEncoder().encode(self),
+              let json = String(data: data, encoding: .utf8) else {
+            return "{}"
+        }
+        return json
+    }
+}
+
+private extension Array where Element == DictationPlaybackTraceEvent {
+    func toJSON() -> String {
+        guard let data = try? JSONEncoder().encode(self),
+              let json = String(data: data, encoding: .utf8) else {
+            return "[]"
+        }
+        return json
     }
 }
 

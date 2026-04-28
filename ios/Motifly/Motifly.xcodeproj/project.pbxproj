@@ -38,6 +38,7 @@
 		BF1D /* DictationSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1D /* DictationSession.swift */; };
 		BF1E /* DictationAttemptLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1E /* DictationAttemptLog.swift */; };
 		BF1F /* DictationWordOrdering.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR1F /* DictationWordOrdering.swift */; };
+		BF20 /* DictationPlaybackEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR20 /* DictationPlaybackEngine.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +74,7 @@
 		FR1D /* DictationSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationSession.swift; sourceTree = "<group>"; };
 		FR1E /* DictationAttemptLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationAttemptLog.swift; sourceTree = "<group>"; };
 		FR1F /* DictationWordOrdering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationWordOrdering.swift; sourceTree = "<group>"; };
+		FR20 /* DictationPlaybackEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationPlaybackEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +151,7 @@
 				FR0E /* DictationProgressStore.swift */,
 				FR10 /* MinePronunciationService.swift */,
 				FR1F /* DictationWordOrdering.swift */,
+				FR20 /* DictationPlaybackEngine.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -270,6 +273,7 @@
 				BF0E /* DictationProgressStore.swift in Sources */,
 				BF10 /* MinePronunciationService.swift in Sources */,
 				BF1F /* DictationWordOrdering.swift in Sources */,
+				BF20 /* DictationPlaybackEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
