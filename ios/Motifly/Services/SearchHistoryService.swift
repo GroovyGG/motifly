@@ -5,15 +5,25 @@ enum SearchHistoryService {
     private static let maxEntries = 50
 
     static func recordSearch(modelContext: ModelContext, seedNumber: Int) {
+        let now = Date()
         let sid = seedNumber
         let fd = FetchDescriptor<SearchHistoryEntry>(
             predicate: #Predicate<SearchHistoryEntry> { $0.seedNumber == sid }
         )
         if let existing = try? modelContext.fetch(fd).first {
-            existing.searchedAt = Date()
+            existing.searchedAt = now
         } else {
-            modelContext.insert(SearchHistoryEntry(seedNumber: seedNumber, searchedAt: Date()))
+            modelContext.insert(SearchHistoryEntry(seedNumber: seedNumber, searchedAt: now))
         }
+
+        StudyEventLogger.record(
+            modelContext: modelContext,
+            seedNumber: seedNumber,
+            eventType: "card_view",
+            context: [
+                "source": "vocabulary_card"
+            ]
+        )
 
         trimToMax(modelContext: modelContext)
         try? modelContext.save()
