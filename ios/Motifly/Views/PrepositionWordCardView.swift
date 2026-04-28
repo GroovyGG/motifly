@@ -7,6 +7,7 @@ struct PrepositionWordCardView: View {
     @Bindable var entry: VocabularyEntry
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
+    @Query(sort: \DictationAttemptLog.submittedAt, order: .reverse) private var attemptLogs: [DictationAttemptLog]
 
     @StateObject private var mineCoordinator = MineRecordingCoordinator()
 
@@ -72,6 +73,14 @@ struct PrepositionWordCardView: View {
 
     private func saveMemoryNote(_ text: String) {
         UserDefaults.standard.set(text, forKey: memoryKey)
+        StudyEventLogger.record(
+            modelContext: modelContext,
+            seedNumber: entry.seedNumber,
+            eventType: StudyEventType.memoryNoteEdit,
+            context: [
+                "screen": "preposition_word_card"
+            ]
+        )
     }
 
     private func sectionHeading(_ title: String) -> some View {
@@ -180,12 +189,28 @@ struct PrepositionWordCardView: View {
                     HStack(spacing: 12) {
                         Button("Save to Mine") {
                             mineCoordinator.confirmSaveMine()
+                            StudyEventLogger.record(
+                                modelContext: modelContext,
+                                seedNumber: entry.seedNumber,
+                                eventType: StudyEventType.mineSaved,
+                                context: [
+                                    "screen": "preposition_word_card"
+                                ]
+                            )
                         }
                         .font(.caption.weight(.semibold))
                         .buttonStyle(.borderedProminent)
 
                         Button("Discard", role: .cancel) {
                             mineCoordinator.discardPendingRecording()
+                            StudyEventLogger.record(
+                                modelContext: modelContext,
+                                seedNumber: entry.seedNumber,
+                                eventType: StudyEventType.mineDiscarded,
+                                context: [
+                                    "screen": "preposition_word_card"
+                                ]
+                            )
                         }
                         .font(.caption.weight(.semibold))
                         .buttonStyle(.bordered)
@@ -492,11 +517,35 @@ struct PrepositionWordCardView: View {
     private var erroredAttemptsPlaceholder: some View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeading("Errored attempts")
-            Text("No spelling mistakes recorded yet.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            if recentWrongAttempts.isEmpty {
+                Text("No spelling mistakes recorded yet.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(recentWrongAttempts, id: \.id) { attempt in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Your input: \(attempt.userInput.isEmpty ? "—" : attempt.userInput)")
+                            .font(.caption)
+                        Text("Expected: \(attempt.expectedLemma)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text(attempt.submittedAt, style: .relative)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var recentWrongAttempts: [DictationAttemptLog] {
+        Array(
+            attemptLogs
+                .filter { $0.seedNumber == entry.seedNumber && !$0.isCorrect }
+                .prefix(3)
+        )
     }
 
     private func prepareAudioSessionForFrenchTTS() {
@@ -541,6 +590,7 @@ struct PrepositionWordCardView: View {
     let container = try! ModelContainer(
         for: VocabularyEntry.self,
         SearchHistoryEntry.self,
+        DictationAttemptLog.self,
         configurations: config
     )
     let entry = VocabularyEntry(
