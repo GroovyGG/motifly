@@ -12,6 +12,7 @@ struct DictationReviewView: View {
     let unitIndex: Int
     let words: [VocabularyEntry]
 
+    @Environment(\.modelContext) private var modelContext
     @Query private var wordStats: [DictationWordStats]
     @StateObject private var playbackEngine = DictationPlaybackEngine()
     @State private var sortMode: SortMode = .weakFirst
@@ -63,6 +64,19 @@ struct DictationReviewView: View {
                             previewRow(index: offset + 1, word: word)
                         }
                         .buttonStyle(.plain)
+                        .simultaneousGesture(
+                            TapGesture().onEnded {
+                                StudyEventLogger.record(
+                                    modelContext: modelContext,
+                                    seedNumber: word.seedNumber,
+                                    eventType: StudyEventType.reviewWordOpen,
+                                    context: [
+                                        "screen": "dictation_review",
+                                        "unit": String(unitIndex + 1)
+                                    ]
+                                )
+                            }
+                        )
                     }
                 }
             }
@@ -106,6 +120,20 @@ struct DictationReviewView: View {
             )
         }
         .buttonStyle(.plain)
+        .simultaneousGesture(
+            TapGesture().onEnded {
+                StudyEventLogger.record(
+                    modelContext: modelContext,
+                    seedNumber: 0,
+                    eventType: StudyEventType.reviewStartDictationTap,
+                    context: [
+                        "screen": "dictation_review",
+                        "unit": String(unitIndex + 1),
+                        "wordCount": String(words.count)
+                    ]
+                )
+            }
+        )
     }
 
     private var summaryCard: some View {
@@ -297,6 +325,15 @@ struct DictationReviewView: View {
     }
 
     private func play(word: VocabularyEntry, source: DictationPlaybackSource) {
+        StudyEventLogger.record(
+            modelContext: modelContext,
+            seedNumber: word.seedNumber,
+            eventType: source == .mine ? StudyEventType.reviewMinePlay : StudyEventType.reviewTTSPlay,
+            context: [
+                "screen": "dictation_review",
+                "unit": String(unitIndex + 1)
+            ]
+        )
         Task {
             let profile = DictationTimingProfile(
                 mode: "review",
@@ -327,6 +364,7 @@ struct DictationReviewView: View {
         for: VocabularyEntry.self,
         SearchHistoryEntry.self,
         DictationWordStats.self,
+        VocabularyStudyEvent.self,
         configurations: config
     )
     return NavigationStack {
