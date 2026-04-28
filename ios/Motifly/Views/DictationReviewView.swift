@@ -69,7 +69,7 @@ struct DictationReviewView: View {
                                 StudyEventLogger.record(
                                     modelContext: modelContext,
                                     seedNumber: word.seedNumber,
-                                    eventType: "review_word_open",
+                                    eventType: StudyEventType.reviewWordOpen,
                                     context: [
                                         "screen": "dictation_review",
                                         "unit": String(unitIndex + 1)
@@ -125,7 +125,7 @@ struct DictationReviewView: View {
                 StudyEventLogger.record(
                     modelContext: modelContext,
                     seedNumber: 0,
-                    eventType: "review_start_dictation_tap",
+                    eventType: StudyEventType.reviewStartDictationTap,
                     context: [
                         "screen": "dictation_review",
                         "unit": String(unitIndex + 1),
@@ -328,7 +328,7 @@ struct DictationReviewView: View {
         StudyEventLogger.record(
             modelContext: modelContext,
             seedNumber: word.seedNumber,
-            eventType: source == .mine ? "review_mine_play" : "review_tts_play",
+            eventType: source == .mine ? StudyEventType.reviewMinePlay : StudyEventType.reviewTTSPlay,
             context: [
                 "screen": "dictation_review",
                 "unit": String(unitIndex + 1)

@@ -71,7 +71,12 @@ struct DictationSessionView: View {
         .onChange(of: sessionDone) { _, done in
             if done {
                 let total = correct + wrong
-                dictationProgress.completeSession(unitIndex: unitIndex, correct: correct, total: total)
+                dictationProgress.completeSession(
+                    unitIndex: unitIndex,
+                    correct: correct,
+                    total: total,
+                    modelContext: modelContext
+                )
                 finishCurrentSession(status: "completed")
             }
         }
@@ -109,7 +114,7 @@ struct DictationSessionView: View {
             playbackTask = nil
             playbackEngine.stopCurrentPlayback()
             if isSessionActive && !sessionDone {
-                dictationProgress.abandonSession(unitIndex: unitIndex)
+                dictationProgress.abandonSession(unitIndex: unitIndex, modelContext: modelContext)
                 finishCurrentSession(status: "abandoned")
             }
         }
@@ -394,7 +399,7 @@ struct DictationSessionView: View {
         StudyEventLogger.record(
             modelContext: modelContext,
             seedNumber: w.seedNumber,
-            eventType: "dictation_submit",
+            eventType: StudyEventType.dictationSubmit,
             context: [
                 "screen": "dictation_session",
                 "correct": ok ? "true" : "false",
@@ -460,7 +465,7 @@ struct DictationSessionView: View {
         StudyEventLogger.record(
             modelContext: modelContext,
             seedNumber: 0,
-            eventType: "dictation_session_start",
+            eventType: StudyEventType.dictationSessionStart,
             context: [
                 "screen": "dictation_session",
                 "unit": String(unitIndex + 1),
@@ -541,7 +546,7 @@ struct DictationSessionView: View {
             StudyEventLogger.record(
                 modelContext: modelContext,
                 seedNumber: word.seedNumber,
-                eventType: isUserReplay ? "dictation_replay" : "dictation_prompt_play",
+                eventType: isUserReplay ? StudyEventType.dictationReplay : StudyEventType.dictationPromptPlay,
                 context: [
                     "screen": "dictation_session",
                     "autoMode": isAutoMode ? "true" : "false"
@@ -595,7 +600,7 @@ struct DictationSessionView: View {
         StudyEventLogger.record(
             modelContext: modelContext,
             seedNumber: 0,
-            eventType: "dictation_session_end",
+            eventType: StudyEventType.dictationSessionEnd,
             context: [
                 "screen": "dictation_session",
                 "unit": String(unitIndex + 1),

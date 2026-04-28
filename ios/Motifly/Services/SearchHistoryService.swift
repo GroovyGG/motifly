@@ -19,7 +19,7 @@ enum SearchHistoryService {
         StudyEventLogger.record(
             modelContext: modelContext,
             seedNumber: seedNumber,
-            eventType: "card_view",
+            eventType: StudyEventType.cardView,
             context: [
                 "source": "vocabulary_card"
             ]

@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import SwiftData
 
 /// Persists per-unit dictation status for the list UI (UserDefaults).
 final class DictationProgressStore: ObservableObject {
@@ -21,7 +22,7 @@ final class DictationProgressStore: ObservableObject {
         records[unitIndex] ?? UnitRecord()
     }
 
-    func completeSession(unitIndex: Int, correct: Int, total: Int) {
+    func completeSession(unitIndex: Int, correct: Int, total: Int, modelContext: ModelContext? = nil) {
         guard total > 0 else { return }
         let pct = min(100, max(0, Int((Double(correct) / Double(total) * 100).rounded())))
         var r = records[unitIndex] ?? UnitRecord()
@@ -29,15 +30,38 @@ final class DictationProgressStore: ObservableObject {
         r.isAbandoned = false
         records[unitIndex] = r
         save()
+        if let modelContext {
+            StudyEventLogger.record(
+                modelContext: modelContext,
+                seedNumber: 0,
+                eventType: StudyEventType.dictationProgressCompleted,
+                context: [
+                    "unit": String(unitIndex + 1),
+                    "correct": String(correct),
+                    "total": String(total),
+                    "accuracyPercent": String(pct)
+                ]
+            )
+        }
     }
 
     /// Marks a unit as "Due" only when the learner leaves before any completed session (no score yet).
-    func abandonSession(unitIndex: Int) {
+    func abandonSession(unitIndex: Int, modelContext: ModelContext? = nil) {
         var r = records[unitIndex] ?? UnitRecord()
         guard r.lastAccuracyPercent == nil else { return }
         r.isAbandoned = true
         records[unitIndex] = r
         save()
+        if let modelContext {
+            StudyEventLogger.record(
+                modelContext: modelContext,
+                seedNumber: 0,
+                eventType: StudyEventType.dictationProgressAbandoned,
+                context: [
+                    "unit": String(unitIndex + 1)
+                ]
+            )
+        }
     }
 
     private func load() {
