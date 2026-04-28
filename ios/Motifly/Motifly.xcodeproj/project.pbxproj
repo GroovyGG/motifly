@@ -43,6 +43,8 @@
 		BF22 /* DictationReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR22 /* DictationReviewView.swift */; };
 		BF23 /* VocabularyStudyEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR23 /* VocabularyStudyEvent.swift */; };
 		BF24 /* StudyEventLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR24 /* StudyEventLogger.swift */; };
+		BF25 /* DebugStudyTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR25 /* DebugStudyTimelineView.swift */; };
+		BF26 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR26 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +85,8 @@
 		FR22 /* DictationReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationReviewView.swift; sourceTree = "<group>"; };
 		FR23 /* VocabularyStudyEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyStudyEvent.swift; sourceTree = "<group>"; };
 		FR24 /* StudyEventLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyEventLogger.swift; sourceTree = "<group>"; };
+		FR25 /* DebugStudyTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugStudyTimelineView.swift; sourceTree = "<group>"; };
+		FR26 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -175,6 +179,8 @@
 				FR0A /* DictationView.swift */,
 				FR0B /* DictationSessionView.swift */,
 				FR22 /* DictationReviewView.swift */,
+				FR25 /* DebugStudyTimelineView.swift */,
+				FR26 /* SettingsView.swift */,
 				FR0F /* NounWordCardView.swift */,
 				FR12 /* VerbWordCardView.swift */,
 				FR13 /* AdjectiveWordCardView.swift */,
@@ -278,6 +284,8 @@
 				BF0A /* DictationView.swift in Sources */,
 				BF0B /* DictationSessionView.swift in Sources */,
 				BF22 /* DictationReviewView.swift in Sources */,
+				BF25 /* DebugStudyTimelineView.swift in Sources */,
+				BF26 /* SettingsView.swift in Sources */,
 				BF0F /* NounWordCardView.swift in Sources */,
 				BF12 /* VerbWordCardView.swift in Sources */,
 				BF13 /* AdjectiveWordCardView.swift in Sources */,
