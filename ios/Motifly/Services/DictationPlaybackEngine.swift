@@ -56,6 +56,8 @@ struct DictationPlaybackTraceEvent: Codable {
 final class DictationPlaybackEngine: NSObject, ObservableObject {
     private var speechSynth = AVSpeechSynthesizer()
     private var ttsContinuation: CheckedContinuation<Void, Never>?
+    private var minePlayer: AVAudioPlayer?
+    private var activePlayToken: Int = 0
 
     override init() {
         super.init()
@@ -68,7 +70,11 @@ final class DictationPlaybackEngine: NSObject, ObservableObject {
         onTrace: (DictationPlaybackTraceEvent) -> Void
     ) async {
         guard !profile.passes.isEmpty else { return }
+        activePlayToken += 1
+        let token = activePlayToken
+        stopCurrentPlayback()
         for (index, pass) in profile.passes.enumerated() {
+            if token != activePlayToken || Task.isCancelled { return }
             let event = await playOnePass(word: word, pass: pass)
             onTrace(event)
             if index < profile.passes.count - 1 {
@@ -78,6 +84,16 @@ final class DictationPlaybackEngine: NSObject, ObservableObject {
                 }
             }
         }
+    }
+
+    func stopCurrentPlayback() {
+        if speechSynth.isSpeaking {
+            speechSynth.stopSpeaking(at: .immediate)
+        }
+        ttsContinuation?.resume()
+        ttsContinuation = nil
+        minePlayer?.stop()
+        minePlayer = nil
     }
 
     private func playOnePass(word: VocabularyEntry, pass: DictationPlaybackPass) async -> DictationPlaybackTraceEvent {
@@ -131,14 +147,24 @@ final class DictationPlaybackEngine: NSObject, ObservableObject {
     private func playMineIfAvailable(seedNumber: Int) async -> Int? {
         guard let url = try? MinePronunciationStorage.fileURL(seedNumber: seedNumber),
               FileManager.default.fileExists(atPath: url.path),
+              isLikelyPlayableAudio(at: url),
               let player = try? AVAudioPlayer(contentsOf: url),
               player.duration > 0 else { return nil }
         prepareAudioSessionForPlayback()
+        minePlayer?.stop()
+        minePlayer = player
         let durationMs = max(0, Int(player.duration * 1000))
-        player.prepareToPlay()
-        player.play()
+        minePlayer?.prepareToPlay()
+        minePlayer?.play()
         try? await Task.sleep(nanoseconds: UInt64(player.duration * 1_000_000_000))
+        minePlayer = nil
         return durationMs
+    }
+
+    private func isLikelyPlayableAudio(at url: URL) -> Bool {
+        guard let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let n = attrs[.size] as? NSNumber else { return false }
+        return n.uint64Value > 256
     }
 
     private func prepareAudioSessionForPlayback() {
