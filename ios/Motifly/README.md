@@ -32,6 +32,12 @@ Registered in `MotiflyApp` schema:
 - dictation progress mirror events (`dictation_progress_completed`, `dictation_progress_abandoned`)
 - review interactions (`review_word_open`, `review_tts_play`, `review_mine_play`, `review_start_dictation_tap`)
 
+Notes:
+
+- `contextJSON` is currently generated from a flat `[String: String]` map.
+- "Append-only" is a write-path convention in app code, not an immutable-store constraint.
+- `DictationProgressStore` remains `UserDefaults`-backed, with lifecycle changes mirrored into `VocabularyStudyEvent`.
+
 Build from CLI:
 
 ```bash
