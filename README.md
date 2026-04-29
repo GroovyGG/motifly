@@ -46,7 +46,10 @@ What runs in the tree **today**: a **single iOS client**, no backend service in 
 The running app now maintains an append-only study timeline in local SwiftData:
 
 - `VocabularyStudyEvent`: `id`, `seedNumber`, `eventType`, `occurredAt`, `contextJSON`
+- `contextJSON` is currently serialized from a flat `[String: String]` context map
 - events are written from vocabulary cards, dictation sessions, review interactions, and dictation-progress state transitions
+- append-only is enforced by app write-path convention (not a DB-level immutability constraint)
+- `DictationProgressStore` still keeps progress state in `UserDefaults`, mirrored into timeline events for chronological visibility
 - this timeline is visible in-app via `DebugStudyTimelineView` for fast end-to-end verification
 
 ```mermaid
@@ -54,11 +57,18 @@ flowchart TB
   subgraph ios [iOS app — local only]
     UI[SwiftUI]
     SD[(SwiftData)]
+    UD[(UserDefaults)]
     Seed[Bundled CSV seeds]
     AV[AVFoundation — speech and playback]
+    Logger[StudyEventLogger]
+    DebugUI[DebugStudyTimelineView]
   end
   Seed --> SD
   UI --> SD
+  UI --> UD
+  UI --> Logger
+  Logger --> SD
+  SD --> DebugUI
   AV --> UI
 ```
 
