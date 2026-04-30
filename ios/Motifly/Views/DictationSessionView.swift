@@ -27,6 +27,8 @@ struct DictationSessionView: View {
     @State private var promptTraceEvents: [DictationPlaybackTraceEvent] = []
     @State private var isSessionActive = false
     @State private var playbackTask: Task<Void, Never>?
+    /// Snapshotted logs for the summary UI (filled before `finishCurrentSession` clears `currentSessionId`).
+    @State private var completedSessionAttempts: [DictationAttemptLog] = []
 
     private let frenchCharacterRows: [[String]] = [
         ["à", "â", "æ", "ç", "é", "è", "ê", "ë"],
@@ -71,6 +73,16 @@ struct DictationSessionView: View {
         .onChange(of: sessionDone) { _, done in
             if done {
                 let total = correct + wrong
+                if let sid = currentSessionId {
+                    let sessionIdConst = sid
+                    let fd = FetchDescriptor<DictationAttemptLog>(
+                        predicate: #Predicate<DictationAttemptLog> { log in log.sessionId == sessionIdConst },
+                        sortBy: [SortDescriptor(\.promptIndex, order: .forward)]
+                    )
+                    completedSessionAttempts = (try? modelContext.fetch(fd)) ?? []
+                } else {
+                    completedSessionAttempts = []
+                }
                 dictationProgress.completeSession(
                     unitIndex: unitIndex,
                     correct: correct,
@@ -370,23 +382,56 @@ struct DictationSessionView: View {
     }
 
     private var sessionSummary: some View {
-        VStack(spacing: 16) {
-            Text("Session complete")
-                .font(.title2)
-            Text("Correct: \(correct)   Wrong: \(wrong)")
-                .font(.headline)
-            Button("Again") {
-                resetSession()
-                sessionDone = false
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(spacing: 8) {
+                Text("Session complete")
+                    .font(.title3.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                Text("Correct: \(correct)   Wrong: \(wrong)")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                Button("Again") {
+                    resetSession()
+                    sessionDone = false
+                }
+                .buttonStyle(.bordered)
+                .tint(.blue)
+                .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+            )
+
+            Text("Attempts (play order)")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            LazyVStack(spacing: 8) {
+                ForEach(Array(completedSessionAttempts.enumerated()), id: \.element.id) { offset, attempt in
+                    DictationSessionCompleteAttemptRow(
+                        displayIndex: offset + 1,
+                        attempt: attempt,
+                        glossaryWord: words.first(where: { $0.seedNumber == attempt.seedNumber }),
+                        playTTS: { playLemmaTTS(for: attempt) }
+                    )
+                }
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(.secondarySystemGroupedBackground))
+    }
+
+    /// French TTS for a row; resolves `VocabularyEntry` from session `words`.
+    private func playLemmaTTS(for attempt: DictationAttemptLog) {
+        guard let entry = words.first(where: { $0.seedNumber == attempt.seedNumber }) else { return }
+        let profile = DictationTimingProfile(
+            mode: "session_summary",
+            passes: [DictationPlaybackPass(source: .tts, delayAfterSeconds: 0)]
         )
+        Task {
+            await playbackEngine.playProfile(word: entry, profile: profile) { _ in }
+        }
     }
 
     private func submitStep() {
@@ -428,6 +473,7 @@ struct DictationSessionView: View {
         wrong = 0
         lastWasCorrect = nil
         sessionDone = false
+        completedSessionAttempts = []
         isSessionActive = false
         isAutoPlaybackStarted = false
         showResultHint = false
@@ -613,6 +659,104 @@ struct DictationSessionView: View {
         currentSessionId = nil
         isSessionActive = false
         isAutoPlaybackStarted = false
+    }
+}
+
+// MARK: - Session complete breakdown
+
+private struct DictationSessionCompleteAttemptRow: View {
+    let displayIndex: Int
+    let attempt: DictationAttemptLog
+    let glossaryWord: VocabularyEntry?
+    let playTTS: () -> Void
+
+    private var typedDisplay: String {
+        let t = attempt.userInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.isEmpty ? "—" : t
+    }
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Text("\(displayIndex)")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.blue)
+                .frame(width: 30, height: 30)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.blue.opacity(0.08))
+                )
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(attempt.expectedLemma)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                    if attempt.isCorrect {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.green)
+                    } else {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.orange.opacity(0.85))
+                    }
+                }
+                if let gloss = glossaryWord, !gloss.english.isEmpty {
+                    Text(gloss.english)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Group {
+                    if attempt.isCorrect {
+                        Text("Matched the lemma.")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("You typed")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                            Text(typedDisplay)
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(.red)
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: playTTS) {
+                Image(systemName: "speaker.wave.2.fill")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(glossaryWord == nil ? .gray : .blue)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        Circle().stroke(
+                            (glossaryWord == nil ? Color.gray : Color.blue).opacity(0.2),
+                            lineWidth: 1
+                        )
+                    )
+            }
+            .buttonStyle(.plain)
+            .disabled(glossaryWord == nil)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
+    }
+
+    private var accessibilitySummary: String {
+        let result = attempt.isCorrect ? "correct" : "incorrect"
+        if attempt.isCorrect {
+            return "Word \(displayIndex): \(attempt.expectedLemma), \(result)."
+        }
+        return "Word \(displayIndex): expected \(attempt.expectedLemma), you typed \(typedDisplay), \(result)."
     }
 }
 
