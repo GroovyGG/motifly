@@ -7,7 +7,19 @@ struct DeterminerWordCardView: View {
     @Bindable var entry: VocabularyEntry
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
-    @Query(sort: \DictationAttemptLog.submittedAt, order: .reverse) private var attemptLogs: [DictationAttemptLog]
+    @Query private var wrongAttemptLogs: [DictationAttemptLog]
+
+    init(entry: VocabularyEntry) {
+        _entry = Bindable(entry)
+        let sid = entry.seedNumber
+        _wrongAttemptLogs = Query(
+            filter: #Predicate<DictationAttemptLog> { log in
+                log.seedNumber == sid && log.isCorrect == false
+            },
+            sort: \DictationAttemptLog.submittedAt,
+            order: .reverse
+        )
+    }
 
     @StateObject private var mineCoordinator = MineRecordingCoordinator()
 
@@ -471,37 +483,7 @@ struct DeterminerWordCardView: View {
     }
 
     private var erroredAttemptsPlaceholder: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            sectionHeading("Errored attempts")
-            if recentWrongAttempts.isEmpty {
-                Text("No spelling mistakes recorded yet.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(recentWrongAttempts, id: \.id) { attempt in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Your input: \(attempt.userInput.isEmpty ? "—" : attempt.userInput)")
-                            .font(.caption)
-                        Text("Expected: \(attempt.expectedLemma)")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(attempt.submittedAt, style: .relative)
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var recentWrongAttempts: [DictationAttemptLog] {
-        Array(
-            attemptLogs
-                .filter { $0.seedNumber == entry.seedNumber && !$0.isCorrect }
-                .prefix(3)
-        )
+        ErroredAttemptsSection(expectedLemma: entry.frenchLemma, wrongAttempts: wrongAttemptLogs)
     }
 
     private func prepareAudioSessionForFrenchTTS() {
