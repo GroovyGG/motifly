@@ -45,7 +45,6 @@
 		BF24 /* StudyEventLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR24 /* StudyEventLogger.swift */; };
 		BF25 /* DebugStudyTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR25 /* DebugStudyTimelineView.swift */; };
 		BF26 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR26 /* SettingsView.swift */; };
-		BF27 /* ErroredAttemptsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR27 /* ErroredAttemptsSection.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -88,7 +87,6 @@
 		FR24 /* StudyEventLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyEventLogger.swift; sourceTree = "<group>"; };
 		FR25 /* DebugStudyTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugStudyTimelineView.swift; sourceTree = "<group>"; };
 		FR26 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		FR27 /* ErroredAttemptsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErroredAttemptsSection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -183,7 +181,6 @@
 				FR22 /* DictationReviewView.swift */,
 				FR25 /* DebugStudyTimelineView.swift */,
 				FR26 /* SettingsView.swift */,
-				FR27 /* ErroredAttemptsSection.swift */,
 				FR0F /* NounWordCardView.swift */,
 				FR12 /* VerbWordCardView.swift */,
 				FR13 /* AdjectiveWordCardView.swift */,
@@ -289,7 +286,6 @@
 				BF22 /* DictationReviewView.swift in Sources */,
 				BF25 /* DebugStudyTimelineView.swift in Sources */,
 				BF26 /* SettingsView.swift in Sources */,
-				BF27 /* ErroredAttemptsSection.swift in Sources */,
 				BF0F /* NounWordCardView.swift in Sources */,
 				BF12 /* VerbWordCardView.swift in Sources */,
 				BF13 /* AdjectiveWordCardView.swift in Sources */,
