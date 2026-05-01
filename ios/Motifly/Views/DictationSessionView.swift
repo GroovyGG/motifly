@@ -321,6 +321,25 @@ struct DictationSessionView: View {
         .disabled(!hasMineRecording(for: word))
     }
 
+    private var translationHintButton: some View {
+        Button {
+            showTranslationHint.toggle()
+        } label: {
+            Image(systemName: "lightbulb.fill")
+                .font(.title3)
+                .foregroundStyle(showTranslationHint ? .white : .blue)
+                .frame(width: 42, height: 42)
+                .background(
+                    Circle()
+                        .fill(showTranslationHint ? Color.blue : Color.blue.opacity(0.12))
+                )
+        }
+        .buttonStyle(.plain)
+        .disabled(current == nil)
+        .opacity(current == nil ? 0.4 : 1)
+        .accessibilityLabel(showTranslationHint ? "Hide translation hint" : "Show English and Chinese translation")
+    }
+
     private var promptCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center, spacing: 12) {
@@ -340,28 +359,9 @@ struct DictationSessionView: View {
                     manualMinePlaybackButton(for: word)
                 }
 
-                Spacer()
+                Spacer(minLength: 8)
 
-                Button {
-                    showTranslationHint.toggle()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "lightbulb.fill")
-                            .font(.caption.weight(.semibold))
-                        Text("Hint")
-                            .font(.caption.weight(.semibold))
-                    }
-                    .foregroundStyle(showTranslationHint ? .white : .blue)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(
-                        Capsule()
-                            .fill(showTranslationHint ? Color.blue : Color.blue.opacity(0.12))
-                    )
-                }
-                .buttonStyle(.plain)
-                .disabled(current == nil)
-                .opacity(current == nil ? 0.45 : 1)
+                translationHintButton
             }
 
             TextField("Enter French text", text: $userInput)
