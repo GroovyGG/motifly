@@ -643,11 +643,13 @@ struct DictationSessionView: View {
             usedHint: showTranslationHint
         )
         modelContext.insert(attempt)
-        upsertWordStats(seedNumber: word.seedNumber, isCorrect: isCorrect, at: now)
+        let stats = upsertWordStats(seedNumber: word.seedNumber, isCorrect: isCorrect, at: now)
+        applyMasteryUpdate(stats: stats, attempt: attempt, errorKind: errorKind, at: now)
         try? modelContext.save()
     }
 
-    private func upsertWordStats(seedNumber: Int, isCorrect: Bool, at now: Date) {
+    @discardableResult
+    private func upsertWordStats(seedNumber: Int, isCorrect: Bool, at now: Date) -> DictationWordStats {
         let fd = FetchDescriptor<DictationWordStats>(
             predicate: #Predicate<DictationWordStats> { $0.seedNumber == seedNumber }
         )
@@ -667,6 +669,30 @@ struct DictationSessionView: View {
             stats.wrongCount += 1
             stats.lastWrongAt = now
         }
+        return stats
+    }
+
+    /// Pull the recent attempts for this word and let `WordMasteryUpdater` recompute mastery.
+    private func applyMasteryUpdate(
+        stats: DictationWordStats,
+        attempt: DictationAttemptLog,
+        errorKind: DictationErrorKind,
+        at now: Date
+    ) {
+        let seedNumber = stats.seedNumber
+        var recentFD = FetchDescriptor<DictationAttemptLog>(
+            predicate: #Predicate<DictationAttemptLog> { $0.seedNumber == seedNumber },
+            sortBy: [SortDescriptor(\.submittedAt, order: .forward)]
+        )
+        recentFD.fetchLimit = WordMasteryUpdater.recentWindow * 2
+        let logs = (try? modelContext.fetch(recentFD)) ?? [attempt]
+        WordMasteryUpdater.applyAttempt(
+            stats: stats,
+            attempt: attempt,
+            errorKind: errorKind,
+            recentLogs: logs,
+            now: now
+        )
     }
 
     private func playCurrentPrompt(isUserReplay: Bool) async {

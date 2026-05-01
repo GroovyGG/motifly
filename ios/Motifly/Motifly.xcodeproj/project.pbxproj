@@ -47,6 +47,7 @@
 		BF26 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR26 /* SettingsView.swift */; };
 		BF28 /* DictationPastSessionSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR28 /* DictationPastSessionSummaryView.swift */; };
 		BF29 /* DictationErrorClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR29 /* DictationErrorClassifier.swift */; };
+		BF2A /* WordMasteryUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2A /* WordMasteryUpdater.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -91,6 +92,7 @@
 		FR26 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		FR28 /* DictationPastSessionSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationPastSessionSummaryView.swift; sourceTree = "<group>"; };
 		FR29 /* DictationErrorClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationErrorClassifier.swift; sourceTree = "<group>"; };
+		FR2A /* WordMasteryUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMasteryUpdater.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +174,7 @@
 				FR20 /* DictationPlaybackEngine.swift */,
 				FR24 /* StudyEventLogger.swift */,
 				FR29 /* DictationErrorClassifier.swift */,
+				FR2A /* WordMasteryUpdater.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -306,6 +309,7 @@
 				BF20 /* DictationPlaybackEngine.swift in Sources */,
 				BF24 /* StudyEventLogger.swift in Sources */,
 				BF29 /* DictationErrorClassifier.swift in Sources */,
+				BF2A /* WordMasteryUpdater.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
