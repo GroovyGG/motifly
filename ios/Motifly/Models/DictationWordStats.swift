@@ -1,7 +1,11 @@
 import Foundation
 import SwiftData
 
-/// Incremental per-word aggregates to support fast ordering (e.g. error-first).
+/// Per-word aggregate. Powers fast ordering (e.g. error-first / weak-first) and
+/// stores the V1 memory-model fields described in `french_dictation_memory_model.md`.
+///
+/// All V1 mastery fields are optional or have defaults so existing stores migrate
+/// via SwiftData lightweight migration without code changes.
 @Model
 final class DictationWordStats {
     @Attribute(.unique) var seedNumber: Int
@@ -12,13 +16,70 @@ final class DictationWordStats {
     var lastAttemptAt: Date?
     var lastWrongAt: Date?
 
+    // MARK: - V1 memory model (mastery, skills, errors, scheduling)
+    // See french_dictation_memory_model.md sections 1-10.
+
+    /// 0-100 simplified display score. Computed by WordMasteryUpdater.
+    var overallMastery: Double?
+    /// 0-100. Recent dictation accuracy (correctness over the last attempts).
+    var dictationScore: Double?
+    /// 0-100. How clean the spelling is (penalizes spelling errors specifically).
+    var spellingScore: Double?
+    /// 0-100. How well the user can write the word from audio without many replays.
+    var listeningScore: Double?
+    /// 0-100. Inferred from how often the user revealed the translation hint.
+    var meaningScore: Double?
+    /// 0-10. Higher means the word is harder for this user.
+    var difficulty: Double?
+
+    var accentErrorCount: Int
+    var spellingErrorCount: Int
+    var articleErrorCount: Int
+    var listeningErrorCount: Int
+    var grammarErrorCount: Int
+    var otherErrorCount: Int
+
+    /// How many times the learner revealed the hint before submitting on this word.
+    var usedHintCount: Int
+    /// Sum of replay counts over the recent window; helper for listeningScore math.
+    var replaySumLast10: Int
+
+    /// Cached label of the largest error bucket (e.g. "accent"). Nil when mastery is high
+    /// or the user has not made enough attempts to call out a weakness.
+    var mainWeakness: String?
+
+    /// Suggested date for the next review of this word (V1 simplified schedule).
+    var nextReviewDate: Date?
+    /// Last time the mastery state was recomputed (i.e. last submission).
+    var lastReviewedAt: Date?
+    /// Days between lastReviewedAt and nextReviewDate, used to grow intervals.
+    var lastIntervalDays: Double?
+
     init(
         seedNumber: Int,
         attemptCount: Int = 0,
         correctCount: Int = 0,
         wrongCount: Int = 0,
         lastAttemptAt: Date? = nil,
-        lastWrongAt: Date? = nil
+        lastWrongAt: Date? = nil,
+        overallMastery: Double? = nil,
+        dictationScore: Double? = nil,
+        spellingScore: Double? = nil,
+        listeningScore: Double? = nil,
+        meaningScore: Double? = nil,
+        difficulty: Double? = nil,
+        accentErrorCount: Int = 0,
+        spellingErrorCount: Int = 0,
+        articleErrorCount: Int = 0,
+        listeningErrorCount: Int = 0,
+        grammarErrorCount: Int = 0,
+        otherErrorCount: Int = 0,
+        usedHintCount: Int = 0,
+        replaySumLast10: Int = 0,
+        mainWeakness: String? = nil,
+        nextReviewDate: Date? = nil,
+        lastReviewedAt: Date? = nil,
+        lastIntervalDays: Double? = nil
     ) {
         self.seedNumber = seedNumber
         self.attemptCount = attemptCount
@@ -26,5 +87,23 @@ final class DictationWordStats {
         self.wrongCount = wrongCount
         self.lastAttemptAt = lastAttemptAt
         self.lastWrongAt = lastWrongAt
+        self.overallMastery = overallMastery
+        self.dictationScore = dictationScore
+        self.spellingScore = spellingScore
+        self.listeningScore = listeningScore
+        self.meaningScore = meaningScore
+        self.difficulty = difficulty
+        self.accentErrorCount = accentErrorCount
+        self.spellingErrorCount = spellingErrorCount
+        self.articleErrorCount = articleErrorCount
+        self.listeningErrorCount = listeningErrorCount
+        self.grammarErrorCount = grammarErrorCount
+        self.otherErrorCount = otherErrorCount
+        self.usedHintCount = usedHintCount
+        self.replaySumLast10 = replaySumLast10
+        self.mainWeakness = mainWeakness
+        self.nextReviewDate = nextReviewDate
+        self.lastReviewedAt = lastReviewedAt
+        self.lastIntervalDays = lastIntervalDays
     }
 }
