@@ -112,6 +112,8 @@ struct DictationView: View {
                 reviewWordsPill(unitIndex: unitIndex, wordsInUnit: wordsInUnit)
                 startDictationPill(unitIndex: unitIndex, wordsInUnit: wordsInUnit)
             }
+
+            lastFinishSummaryRow(groupNumber: groupNumber, wordsInUnit: wordsInUnit)
         }
         .padding(12)
         .background(
@@ -192,6 +194,53 @@ struct DictationView: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    /// Latest session with `status == "completed"` for this group (`unit_{groupNumber}`).
+    private func lastCompletedSession(for groupNumber: Int) -> DictationSession? {
+        let scope = "unit_\(groupNumber)"
+        return sessions
+            .filter { $0.sourceScope == scope && $0.status == "completed" }
+            .max(by: { ($0.endedAt ?? $0.startedAt) < ($1.endedAt ?? $1.startedAt) })
+    }
+
+    private func lastFinishSummaryRow(groupNumber: Int, wordsInUnit: [VocabularyEntry]) -> some View {
+        let hasSummary = lastCompletedSession(for: groupNumber) != nil
+        return Group {
+            if hasSummary {
+                NavigationLink {
+                    DictationPastSessionSummaryView(groupNumber: groupNumber, words: wordsInUnit)
+                } label: {
+                    lastFinishSummaryLabel()
+                }
+                .buttonStyle(.plain)
+            } else {
+                lastFinishSummaryLabel()
+                    .opacity(0.42)
+            }
+        }
+    }
+
+    private func lastFinishSummaryLabel() -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "list.clipboard")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.blue)
+            Text("Last finish summary")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.primary)
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.right")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(.tertiarySystemGroupedBackground))
+        )
     }
 
     private func reviewWordsPill(unitIndex: Int, wordsInUnit: [VocabularyEntry]) -> some View {
