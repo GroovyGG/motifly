@@ -4,8 +4,7 @@ import SwiftData
 /// Per-word aggregate. Powers fast ordering (e.g. error-first / weak-first) and
 /// stores the V1 memory-model fields described in `french_dictation_memory_model.md`.
 ///
-/// All V1 mastery fields are optional or have defaults so existing stores migrate
-/// via SwiftData lightweight migration without code changes.
+/// Weakness is **spelling-only**: five spelling subtypes. No separate accent/article/etc. buckets.
 @Model
 final class DictationWordStats {
     @Attribute(.unique) var seedNumber: Int
@@ -17,7 +16,6 @@ final class DictationWordStats {
     var lastWrongAt: Date?
 
     // MARK: - V1 memory model (mastery, skills, errors, scheduling)
-    // See french_dictation_memory_model.md sections 1-10.
 
     /// 0-100 simplified display score. Computed by WordMasteryUpdater.
     var overallMastery: Double?
@@ -32,29 +30,22 @@ final class DictationWordStats {
     /// 0-10. Higher means the word is harder for this user.
     var difficulty: Double?
 
-    // Inline defaults are required for SwiftData lightweight migration: existing rows
-    // get these values; init defaults alone do not apply to migrated instances.
-    var accentErrorCount: Int = 0
-    /// Legacy aggregate: incremented together with any `spelling_*` subtype for compatibility.
+    // Inline defaults are required for SwiftData lightweight migration.
+    /// Incremented on any `spelling_*` attempt (aggregate for reporting).
     var spellingErrorCount: Int = 0
-    /// Spelling sub-buckets (vocabulary dictation–oriented).
     var spellingExtraCount: Int = 0
     var spellingMissingCount: Int = 0
     var spellingVowelCount: Int = 0
     var spellingConsonantCount: Int = 0
     var spellingMixedCount: Int = 0
-    var articleErrorCount: Int = 0
-    var listeningErrorCount: Int = 0
-    var grammarErrorCount: Int = 0
-    var otherErrorCount: Int = 0
 
     /// How many times the learner revealed the hint before submitting on this word.
     var usedHintCount: Int = 0
     /// Sum of replay counts over the recent window; helper for listeningScore math.
     var replaySumLast10: Int = 0
 
-    /// Cached label of the largest error bucket (e.g. "accent"). Nil when mastery is high
-    /// or the user has not made enough attempts to call out a weakness.
+    /// Largest spelling subtype raw value, e.g. `spelling_vowel`. Nil when mastery is high
+    /// or no spelling-subtype errors yet.
     var mainWeakness: String?
 
     /// Suggested date for the next review of this word (V1 simplified schedule).
@@ -77,17 +68,12 @@ final class DictationWordStats {
         listeningScore: Double? = nil,
         meaningScore: Double? = nil,
         difficulty: Double? = nil,
-        accentErrorCount: Int = 0,
         spellingErrorCount: Int = 0,
         spellingExtraCount: Int = 0,
         spellingMissingCount: Int = 0,
         spellingVowelCount: Int = 0,
         spellingConsonantCount: Int = 0,
         spellingMixedCount: Int = 0,
-        articleErrorCount: Int = 0,
-        listeningErrorCount: Int = 0,
-        grammarErrorCount: Int = 0,
-        otherErrorCount: Int = 0,
         usedHintCount: Int = 0,
         replaySumLast10: Int = 0,
         mainWeakness: String? = nil,
@@ -107,17 +93,12 @@ final class DictationWordStats {
         self.listeningScore = listeningScore
         self.meaningScore = meaningScore
         self.difficulty = difficulty
-        self.accentErrorCount = accentErrorCount
         self.spellingErrorCount = spellingErrorCount
         self.spellingExtraCount = spellingExtraCount
         self.spellingMissingCount = spellingMissingCount
         self.spellingVowelCount = spellingVowelCount
         self.spellingConsonantCount = spellingConsonantCount
         self.spellingMixedCount = spellingMixedCount
-        self.articleErrorCount = articleErrorCount
-        self.listeningErrorCount = listeningErrorCount
-        self.grammarErrorCount = grammarErrorCount
-        self.otherErrorCount = otherErrorCount
         self.usedHintCount = usedHintCount
         self.replaySumLast10 = replaySumLast10
         self.mainWeakness = mainWeakness

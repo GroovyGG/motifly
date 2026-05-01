@@ -1,67 +1,55 @@
 import Foundation
 
-/// Dictation error bucket stored on `DictationAttemptLog.errorType` (raw string).
+/// Stored on `DictationAttemptLog.errorType` (raw string).
 ///
-/// Spelling is split into purposeful subtypes for a vocabulary dictation app:
-/// extra letter, missing letter, vowel-related substitution, consonant-only substitution,
-/// and mixed / complex edits (transpositions, multiple edits, etc.).
+/// **Weakness is spelling-only** (five subtypes). `listening` / `other` are kept on the log
+/// for analytics but do not increment spelling subtype counters on `DictationWordStats`.
 enum DictationErrorKind: String {
     case none
-    case accent
-    /// User typed one or more extra letters vs the lemma (insertion-heavy).
     case spelling_extra
-    /// User omitted one or more letters vs the lemma (deletion-heavy).
     case spelling_missing
-    /// Substitution where a vowel (a,e,i,o,u,y, including accented forms) is involved.
     case spelling_vowel
-    /// Single- or double-substitution errors involving only consonants.
     case spelling_consonant
-    /// Transposition, multiple edit types, or Levenshtein > 2 within the spelling band.
     case spelling_mixed
-    case article
     case listening
-    case grammar
     case other
 
-    /// Legacy logs may still carry `spelling` before the subtype split.
+    /// Legacy logs: generic `spelling`, or old `accent` / `article` before spelling-only weakness.
     static func isSpellingFamily(_ raw: String?) -> Bool {
         guard let r = raw else { return false }
         if r == "spelling" { return true }
+        if r == "accent" || r == "article" { return true }
         return r.hasPrefix("spelling_")
     }
 
-    /// Short English label for weakness chips (not raw snake_case).
+    /// Used when penalizing spelling score from attempt history (includes legacy types).
+    static func countsTowardSpellingScorePenalty(_ raw: String?) -> Bool {
+        isSpellingFamily(raw)
+    }
+
     static func weaknessDisplayName(forStored raw: String?) -> String {
-        guard let raw, let kind = DictationErrorKind(rawValue: raw) else {
-            if raw == "spelling" { return "Spelling" }
-            return raw?.capitalized ?? "—"
+        guard let raw else { return "—" }
+        if let kind = DictationErrorKind(rawValue: raw) {
+            switch kind {
+            case .none: return "—"
+            case .spelling_extra: return "Extra letter"
+            case .spelling_missing: return "Missing letter"
+            case .spelling_vowel: return "Vowel spelling"
+            case .spelling_consonant: return "Consonant spelling"
+            case .spelling_mixed: return "Mixed spelling"
+            case .listening: return "Listening"
+            case .other: return "Other"
+            }
         }
-        switch kind {
-        case .none: return "—"
-        case .accent: return "Accent"
-        case .spelling_extra: return "Extra letter"
-        case .spelling_missing: return "Missing letter"
-        case .spelling_vowel: return "Vowel spelling"
-        case .spelling_consonant: return "Consonant spelling"
-        case .spelling_mixed: return "Mixed spelling"
-        case .article: return "Article"
-        case .listening: return "Listening"
-        case .grammar: return "Grammar"
-        case .other: return "Other"
-        }
+        if raw == "spelling" { return "Spelling" }
+        if raw == "accent" { return "Accent" }
+        if raw == "article" { return "Article" }
+        return raw.capitalized
     }
 }
 
 enum DictationErrorClassifier {
-    /// French articles/determiners we strip when checking for "wrong article" mistakes.
-    private static let articlePrefixes: [String] = [
-        "le ", "la ", "les ", "l'",
-        "un ", "une ", "des ",
-        "du ", "de la ", "de l'", "de "
-    ]
-
     private static let listeningReplayThreshold: Int = 3
-    /// Beyond this Levenshtein distance we treat as listening / other unless replay is low.
     private static let spellingBandMaxDistance: Int = 4
 
     static func classify(
@@ -79,16 +67,8 @@ enum DictationErrorClassifier {
 
         let strippedInput = stripDiacritics(normInput)
         let strippedExpected = stripDiacritics(normExpected)
-        if strippedInput == strippedExpected {
-            return .accent
-        }
-
-        let articleStrippedInput = stripLeadingArticle(normInput)
-        let articleStrippedExpected = stripLeadingArticle(normExpected)
-        if articleStrippedInput != normInput || articleStrippedExpected != normExpected {
-            if articleStrippedInput == articleStrippedExpected {
-                return .article
-            }
+        if strippedInput == strippedExpected, normInput != normExpected {
+            return classifyDiacriticOnly(normUser: normInput, normExpected: normExpected)
         }
 
         let distance = levenshtein(normInput, normExpected)
@@ -107,9 +87,21 @@ enum DictationErrorClassifier {
         )
     }
 
-    // MARK: - Spelling band (purposeful subtypes)
+    // MARK: - Diacritic-only (formerly “accent”; now a spelling subtype)
 
-    /// `distance` is in `1...spellingBandMaxDistance`.
+    private static func classifyDiacriticOnly(normUser: String, normExpected: String) -> DictationErrorKind {
+        let u = Array(normUser)
+        let e = Array(normExpected)
+        guard u.count == e.count else { return .spelling_mixed }
+        for i in 0..<u.count where u[i] != e[i] {
+            let au = stripDiacritics(String(u[i])).lowercased()
+            if isVowelLetter(au) { return .spelling_vowel }
+        }
+        return .spelling_consonant
+    }
+
+    // MARK: - Spelling band
+
     private static func classifySpellingBand(
         normUser: String,
         normExpected: String,
@@ -140,11 +132,9 @@ enum DictationErrorClassifier {
             return .spelling_mixed
         }
 
-        // distance 3–4
         return .spelling_mixed
     }
 
-    /// Same length, exactly one differing index.
     private static func singleSubstitutionVowelConsonant(_ u: [Character], _ e: [Character]) -> DictationErrorKind? {
         guard u.count == e.count else { return nil }
         var diffIdx: [Int] = []
@@ -159,7 +149,6 @@ enum DictationErrorClassifier {
         return (va || vb) ? .spelling_vowel : .spelling_consonant
     }
 
-    /// Same length, two mismatched positions (not a transposition).
     private static func doubleSubstitutionKind(_ u: [Character], _ e: [Character]) -> DictationErrorKind {
         var idx: [Int] = []
         for i in 0..<u.count where u[i] != e[i] {
@@ -188,7 +177,6 @@ enum DictationErrorClassifier {
         return false
     }
 
-    /// After stripping diacritics, `s` is one grapheme (lowercase).
     private static func isVowelLetter(_ s: String) -> Bool {
         guard let c = s.first else { return false }
         let folded = String(c).lowercased()
@@ -197,15 +185,6 @@ enum DictationErrorClassifier {
 
     private static func stripDiacritics(_ s: String) -> String {
         s.folding(options: .diacriticInsensitive, locale: Locale(identifier: "fr_FR"))
-    }
-
-    private static func stripLeadingArticle(_ s: String) -> String {
-        for prefix in articlePrefixes {
-            if s.hasPrefix(prefix) {
-                return String(s.dropFirst(prefix.count))
-            }
-        }
-        return s
     }
 
     private static func levenshtein(_ a: String, _ b: String) -> Int {

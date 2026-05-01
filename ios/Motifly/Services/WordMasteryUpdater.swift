@@ -41,8 +41,7 @@ enum WordMasteryUpdater {
         let replaySum = window.reduce(0) { $0 + $1.replayCount }
         let hintCount = window.reduce(0) { $0 + (($1.usedHint == true) ? 1 : 0) }
         let spellingMistakes = window.filter { log in
-            guard let t = log.errorType else { return false }
-            return DictationErrorKind.isSpellingFamily(t) || t == DictationErrorKind.accent.rawValue
+            DictationErrorKind.countsTowardSpellingScorePenalty(log.errorType)
         }.count
 
         let dictationScore = clamp01_100(Double(correctCount) / Double(windowCount) * 100)
@@ -99,8 +98,6 @@ enum WordMasteryUpdater {
         switch errorKind {
         case .none:
             return
-        case .accent:
-            stats.accentErrorCount += 1
         case .spelling_extra:
             stats.spellingExtraCount += 1
             stats.spellingErrorCount += 1
@@ -116,14 +113,9 @@ enum WordMasteryUpdater {
         case .spelling_mixed:
             stats.spellingMixedCount += 1
             stats.spellingErrorCount += 1
-        case .article:
-            stats.articleErrorCount += 1
-        case .listening:
-            stats.listeningErrorCount += 1
-        case .grammar:
-            stats.grammarErrorCount += 1
-        case .other:
-            stats.otherErrorCount += 1
+        case .listening, .other:
+            // Still recorded on `DictationAttemptLog`; weakness stays spelling-only.
+            return
         }
     }
 
@@ -132,16 +124,11 @@ enum WordMasteryUpdater {
             return nil
         }
         let buckets: [(String, Int)] = [
-            ("accent", stats.accentErrorCount),
             (DictationErrorKind.spelling_extra.rawValue, stats.spellingExtraCount),
             (DictationErrorKind.spelling_missing.rawValue, stats.spellingMissingCount),
             (DictationErrorKind.spelling_vowel.rawValue, stats.spellingVowelCount),
             (DictationErrorKind.spelling_consonant.rawValue, stats.spellingConsonantCount),
-            (DictationErrorKind.spelling_mixed.rawValue, stats.spellingMixedCount),
-            ("article", stats.articleErrorCount),
-            ("listening", stats.listeningErrorCount),
-            ("grammar", stats.grammarErrorCount),
-            ("other", stats.otherErrorCount)
+            (DictationErrorKind.spelling_mixed.rawValue, stats.spellingMixedCount)
         ]
         guard let top = buckets.max(by: { $0.1 < $1.1 }), top.1 > 0 else {
             return nil
