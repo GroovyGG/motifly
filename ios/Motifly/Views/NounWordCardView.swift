@@ -417,22 +417,6 @@ struct NounWordCardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func metricChip(title: String, value: String) -> some View {
-        VStack(spacing: 6) {
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.callout.weight(.bold))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.tertiarySystemGroupedBackground))
-        )
-    }
-
     private var erroredAttemptsPlaceholder: some View {
         ErroredAttemptsSection(expectedLemma: entry.frenchLemma, wrongAttempts: wrongAttemptLogs)
     }
