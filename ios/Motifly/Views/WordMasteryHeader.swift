@@ -28,7 +28,11 @@ struct WordMasteryHeader: View {
     }
 
     private var weaknessText: String {
-        current?.mainWeakness?.capitalized ?? (current == nil ? "—" : "On track")
+        guard let stats = current else { return "—" }
+        if let key = stats.mainWeakness {
+            return DictationErrorKind.weaknessDisplayName(forStored: key)
+        }
+        return "On track"
     }
 
     private var nextReviewText: String {

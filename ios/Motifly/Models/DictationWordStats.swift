@@ -35,7 +35,14 @@ final class DictationWordStats {
     // Inline defaults are required for SwiftData lightweight migration: existing rows
     // get these values; init defaults alone do not apply to migrated instances.
     var accentErrorCount: Int = 0
+    /// Legacy aggregate: incremented together with any `spelling_*` subtype for compatibility.
     var spellingErrorCount: Int = 0
+    /// Spelling sub-buckets (vocabulary dictation–oriented).
+    var spellingExtraCount: Int = 0
+    var spellingMissingCount: Int = 0
+    var spellingVowelCount: Int = 0
+    var spellingConsonantCount: Int = 0
+    var spellingMixedCount: Int = 0
     var articleErrorCount: Int = 0
     var listeningErrorCount: Int = 0
     var grammarErrorCount: Int = 0
@@ -72,6 +79,11 @@ final class DictationWordStats {
         difficulty: Double? = nil,
         accentErrorCount: Int = 0,
         spellingErrorCount: Int = 0,
+        spellingExtraCount: Int = 0,
+        spellingMissingCount: Int = 0,
+        spellingVowelCount: Int = 0,
+        spellingConsonantCount: Int = 0,
+        spellingMixedCount: Int = 0,
         articleErrorCount: Int = 0,
         listeningErrorCount: Int = 0,
         grammarErrorCount: Int = 0,
@@ -97,6 +109,11 @@ final class DictationWordStats {
         self.difficulty = difficulty
         self.accentErrorCount = accentErrorCount
         self.spellingErrorCount = spellingErrorCount
+        self.spellingExtraCount = spellingExtraCount
+        self.spellingMissingCount = spellingMissingCount
+        self.spellingVowelCount = spellingVowelCount
+        self.spellingConsonantCount = spellingConsonantCount
+        self.spellingMixedCount = spellingMixedCount
         self.articleErrorCount = articleErrorCount
         self.listeningErrorCount = listeningErrorCount
         self.grammarErrorCount = grammarErrorCount

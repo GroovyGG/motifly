@@ -339,7 +339,7 @@ struct DictationReviewView: View {
                         .frame(width: 44 * CGFloat(Double(percent ?? 0) / 100.0), height: 4)
                 }
             if let weakness = mainWeakness(for: word) {
-                Text(weakness.capitalized)
+                Text(DictationErrorKind.weaknessDisplayName(forStored: weakness))
                     .font(.system(size: 9).weight(.semibold))
                     .foregroundStyle(.orange)
                     .padding(.horizontal, 5)
