@@ -48,6 +48,7 @@
 		BF28 /* DictationPastSessionSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR28 /* DictationPastSessionSummaryView.swift */; };
 		BF29 /* DictationErrorClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR29 /* DictationErrorClassifier.swift */; };
 		BF2A /* WordMasteryUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2A /* WordMasteryUpdater.swift */; };
+		BF2B /* WordMasteryHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2B /* WordMasteryHeader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -93,6 +94,7 @@
 		FR28 /* DictationPastSessionSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationPastSessionSummaryView.swift; sourceTree = "<group>"; };
 		FR29 /* DictationErrorClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationErrorClassifier.swift; sourceTree = "<group>"; };
 		FR2A /* WordMasteryUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMasteryUpdater.swift; sourceTree = "<group>"; };
+		FR2B /* WordMasteryHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMasteryHeader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -197,6 +199,7 @@
 				FR18 /* DeterminerWordCardView.swift */,
 				FR1A /* PronounWordCardView.swift */,
 				FR1C /* PrepositionWordCardView.swift */,
+				FR2B /* WordMasteryHeader.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -310,6 +313,7 @@
 				BF24 /* StudyEventLogger.swift in Sources */,
 				BF29 /* DictationErrorClassifier.swift in Sources */,
 				BF2A /* WordMasteryUpdater.swift in Sources */,
+				BF2B /* WordMasteryHeader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

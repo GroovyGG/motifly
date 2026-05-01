@@ -412,10 +412,7 @@ struct NounWordCardView: View {
     private var progressPlaceholder: some View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeading("Progress")
-            HStack(spacing: 12) {
-                metricChip(title: "Accuracy", value: "—")
-                metricChip(title: "Attempts", value: "—")
-            }
+            WordMasteryHeader(seedNumber: entry.seedNumber)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
