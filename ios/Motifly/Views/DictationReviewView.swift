@@ -250,21 +250,7 @@ struct DictationReviewView: View {
             Divider()
                 .frame(height: 48)
 
-            VStack(alignment: .leading, spacing: 3) {
-                let percent = historyPercent(for: word)
-                Text(percent.map { "\($0)%" } ?? "—")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.blue)
-                Capsule()
-                    .fill(Color.blue.opacity(0.18))
-                    .frame(width: 44, height: 4)
-                    .overlay(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.blue)
-                            .frame(width: 44 * CGFloat(Double(percent ?? 0) / 100.0), height: 4)
-                    }
-            }
-            .frame(width: 50, alignment: .leading)
+            masteryColumn(for: word)
 
             VStack(spacing: 6) {
                 rowIconButton(systemName: "speaker.wave.2.fill") {
@@ -322,6 +308,48 @@ struct DictationReviewView: View {
     private func historyPercent(for word: VocabularyEntry) -> Int? {
         guard let s = statsBySeed[word.seedNumber], s.attemptCount > 0 else { return nil }
         return Int((Double(s.correctCount) / Double(s.attemptCount) * 100.0).rounded())
+    }
+
+    /// V1 memory model display: prefer overallMastery, fall back to historical accuracy
+    /// while users still have words on the legacy stats path.
+    private func masteryPercent(for word: VocabularyEntry) -> Int? {
+        if let mastery = statsBySeed[word.seedNumber]?.overallMastery {
+            return Int(mastery.rounded())
+        }
+        return historyPercent(for: word)
+    }
+
+    private func mainWeakness(for word: VocabularyEntry) -> String? {
+        statsBySeed[word.seedNumber]?.mainWeakness
+    }
+
+    @ViewBuilder
+    private func masteryColumn(for word: VocabularyEntry) -> some View {
+        let percent = masteryPercent(for: word)
+        VStack(alignment: .leading, spacing: 3) {
+            Text(percent.map { "\($0)%" } ?? "—")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.blue)
+            Capsule()
+                .fill(Color.blue.opacity(0.18))
+                .frame(width: 44, height: 4)
+                .overlay(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.blue)
+                        .frame(width: 44 * CGFloat(Double(percent ?? 0) / 100.0), height: 4)
+                }
+            if let weakness = mainWeakness(for: word) {
+                Text(weakness.capitalized)
+                    .font(.system(size: 9).weight(.semibold))
+                    .foregroundStyle(.orange)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(
+                        Capsule().fill(Color.orange.opacity(0.15))
+                    )
+            }
+        }
+        .frame(width: 60, alignment: .leading)
     }
 
     private func play(word: VocabularyEntry, source: DictationPlaybackSource) {
