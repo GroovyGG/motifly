@@ -29,6 +29,7 @@ struct DictationSessionView: View {
     @State private var playbackTask: Task<Void, Never>?
     /// Snapshotted logs for the summary UI (filled before `finishCurrentSession` clears `currentSessionId`).
     @State private var completedSessionAttempts: [DictationAttemptLog] = []
+    @State private var showTranslationHint = false
 
     private let frenchCharacterRows: [[String]] = [
         ["à", "â", "æ", "ç", "é", "è", "ê", "ë"],
@@ -93,6 +94,7 @@ struct DictationSessionView: View {
             }
         }
         .onChange(of: currentIndex) { _, _ in
+            showTranslationHint = false
             promptShownAt = .now
             resetPromptPlaybackState()
             if isAutoMode && isAutoPlaybackStarted {
@@ -339,12 +341,56 @@ struct DictationSessionView: View {
                 }
 
                 Spacer()
+
+                Button {
+                    showTranslationHint.toggle()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.caption.weight(.semibold))
+                        Text("Hint")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(showTranslationHint ? .white : .blue)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(showTranslationHint ? Color.blue : Color.blue.opacity(0.12))
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(current == nil)
+                .opacity(current == nil ? 0.45 : 1)
             }
 
             TextField("Enter French text", text: $userInput)
                 .textFieldStyle(.roundedBorder)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
+
+            if showTranslationHint, let word = current {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(word.english)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                    if let zh = word.chineseExplanation, !zh.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text(zh)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.blue.opacity(0.08))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.blue.opacity(0.18), lineWidth: 1)
+                )
+            }
 
             if let ok = lastWasCorrect, showResultHint {
                 Text(ok ? "Correct" : "Incorrect")
@@ -520,6 +566,7 @@ struct DictationSessionView: View {
         isSessionActive = false
         isAutoPlaybackStarted = false
         showResultHint = false
+        showTranslationHint = false
         promptShownAt = .now
         resetPromptPlaybackState()
     }
