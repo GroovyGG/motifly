@@ -32,17 +32,19 @@ final class DictationWordStats {
     /// 0-10. Higher means the word is harder for this user.
     var difficulty: Double?
 
-    var accentErrorCount: Int
-    var spellingErrorCount: Int
-    var articleErrorCount: Int
-    var listeningErrorCount: Int
-    var grammarErrorCount: Int
-    var otherErrorCount: Int
+    // Inline defaults are required for SwiftData lightweight migration: existing rows
+    // get these values; init defaults alone do not apply to migrated instances.
+    var accentErrorCount: Int = 0
+    var spellingErrorCount: Int = 0
+    var articleErrorCount: Int = 0
+    var listeningErrorCount: Int = 0
+    var grammarErrorCount: Int = 0
+    var otherErrorCount: Int = 0
 
     /// How many times the learner revealed the hint before submitting on this word.
-    var usedHintCount: Int
+    var usedHintCount: Int = 0
     /// Sum of replay counts over the recent window; helper for listeningScore math.
-    var replaySumLast10: Int
+    var replaySumLast10: Int = 0
 
     /// Cached label of the largest error bucket (e.g. "accent"). Nil when mastery is high
     /// or the user has not made enough attempts to call out a weakness.
