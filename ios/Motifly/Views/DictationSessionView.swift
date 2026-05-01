@@ -633,7 +633,8 @@ struct DictationSessionView: View {
             elapsedMs: elapsedMs,
             replayCount: promptReplayCount,
             playTraceJSON: traceJSON,
-            errorType: isCorrect ? nil : "other"
+            errorType: isCorrect ? nil : "other",
+            usedHint: showTranslationHint
         )
         modelContext.insert(attempt)
         upsertWordStats(seedNumber: word.seedNumber, isCorrect: isCorrect, at: now)

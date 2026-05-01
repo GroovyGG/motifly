@@ -27,6 +27,9 @@ final class DictationAttemptLog {
     var playTraceJSON: String
     /// none | accent | typo | other
     var errorType: String?
+    /// True if the learner revealed the English/Chinese translation hint before submitting.
+    /// Optional for SwiftData lightweight migration of stores written before this column existed.
+    var usedHint: Bool?
 
     init(
         id: UUID = UUID(),
@@ -43,7 +46,8 @@ final class DictationAttemptLog {
         elapsedMs: Int,
         replayCount: Int = 0,
         playTraceJSON: String = "[]",
-        errorType: String? = nil
+        errorType: String? = nil,
+        usedHint: Bool = false
     ) {
         self.id = id
         self.sessionId = sessionId
@@ -60,5 +64,6 @@ final class DictationAttemptLog {
         self.replayCount = replayCount
         self.playTraceJSON = playTraceJSON
         self.errorType = errorType
+        self.usedHint = usedHint
     }
 }
