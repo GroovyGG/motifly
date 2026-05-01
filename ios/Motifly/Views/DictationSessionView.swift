@@ -300,9 +300,28 @@ struct DictationSessionView: View {
         )
     }
 
+    private func manualMinePlaybackButton(for word: VocabularyEntry) -> some View {
+        Button {
+            triggerMinePlayback()
+        } label: {
+            Image(systemName: "mic.fill")
+                .font(.title3)
+                .foregroundStyle(hasMineRecording(for: word) ? .blue : .gray)
+                .frame(width: 42, height: 42)
+                .background(
+                    Circle().stroke(
+                        hasMineRecording(for: word) ? Color.blue.opacity(0.25) : Color.gray.opacity(0.35),
+                        lineWidth: 1
+                    )
+                )
+        }
+        .buttonStyle(.plain)
+        .disabled(!hasMineRecording(for: word))
+    }
+
     private var promptCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center) {
+            HStack(alignment: .center, spacing: 12) {
                 Button {
                     triggerPromptPlayback(isUserReplay: true)
                 } label: {
@@ -314,6 +333,11 @@ struct DictationSessionView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(current == nil)
+
+                if !isAutoMode, let word = current {
+                    manualMinePlaybackButton(for: word)
+                }
+
                 Spacer()
             }
 
@@ -584,6 +608,47 @@ struct DictationSessionView: View {
         guard !Task.isCancelled else { return }
         if isAutoMode && isAutoPlaybackStarted && !isUserReplay && isSessionActive && !sessionDone {
             submitStep()
+        }
+    }
+
+    /// Manual mode: play user “Mine” recording only (no TTS fallback path when button is enabled).
+    private func playMinePrompt(isUserReplay: Bool) async {
+        guard let word = current, hasMineRecording(for: word) else { return }
+        if isUserReplay {
+            promptReplayCount += 1
+        }
+        let profile = DictationTimingProfile(
+            mode: "manual_mine",
+            passes: [DictationPlaybackPass(source: .mine, delayAfterSeconds: 0)]
+        )
+        await playbackEngine.playProfile(word: word, profile: profile) { event in
+            promptTraceEvents.append(event)
+        }
+    }
+
+    private func hasMineRecording(for word: VocabularyEntry) -> Bool {
+        guard let url = try? MinePronunciationStorage.fileURL(seedNumber: word.seedNumber),
+              FileManager.default.fileExists(atPath: url.path),
+              let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let n = attrs[.size] as? NSNumber else { return false }
+        return n.uint64Value > 256
+    }
+
+    private func triggerMinePlayback() {
+        guard let word = current, hasMineRecording(for: word) else { return }
+        StudyEventLogger.record(
+            modelContext: modelContext,
+            seedNumber: word.seedNumber,
+            eventType: StudyEventType.dictationReplay,
+            context: [
+                "screen": "dictation_session",
+                "autoMode": "false",
+                "source": "mine"
+            ]
+        )
+        playbackTask?.cancel()
+        playbackTask = Task {
+            await playMinePrompt(isUserReplay: true)
         }
     }
 
