@@ -619,6 +619,12 @@ struct DictationSessionView: View {
         let normalizedExpected = DictationNormalization.normalize(word.frenchLemma)
         let normalizedInput = DictationNormalization.normalize(userInput)
         let traceJSON = promptTraceEvents.toJSON()
+        let errorKind = DictationErrorClassifier.classify(
+            userInput: userInput,
+            expectedLemma: word.frenchLemma,
+            replayCount: promptReplayCount,
+            isCorrect: isCorrect
+        )
         let attempt = DictationAttemptLog(
             sessionId: sessionId,
             seedNumber: word.seedNumber,
@@ -633,7 +639,7 @@ struct DictationSessionView: View {
             elapsedMs: elapsedMs,
             replayCount: promptReplayCount,
             playTraceJSON: traceJSON,
-            errorType: isCorrect ? nil : "other",
+            errorType: isCorrect ? nil : errorKind.rawValue,
             usedHint: showTranslationHint
         )
         modelContext.insert(attempt)
