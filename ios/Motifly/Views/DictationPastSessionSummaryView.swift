@@ -25,13 +25,15 @@ struct DictationPastSessionSummaryView: View {
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
 
-                        LazyVStack(spacing: 8) {
+                        LazyVStack(spacing: 12) {
                             ForEach(Array(attempts.enumerated()), id: \.element.id) { offset, attempt in
                                 DictationSessionCompleteAttemptRow(
                                     displayIndex: offset + 1,
                                     attempt: attempt,
                                     glossaryWord: words.first(where: { $0.seedNumber == attempt.seedNumber }),
-                                    playTTS: { playLemmaTTS(for: attempt) }
+                                    playTTS: { playLemmaTTS(for: attempt) },
+                                    playMine: { playLemmaMine(for: attempt) },
+                                    hasMineRecording: mineRecordingAvailable(for: attempt)
                                 )
                             }
                         }
@@ -116,6 +118,31 @@ struct DictationPastSessionSummaryView: View {
             await playbackEngine.playProfile(word: entry, profile: profile) { _ in }
         }
     }
+
+    private func playLemmaMine(for attempt: DictationAttemptLog) {
+        guard let entry = words.first(where: { $0.seedNumber == attempt.seedNumber }),
+              hasMineRecording(for: entry) else { return }
+        let profile = DictationTimingProfile(
+            mode: "past_session_summary_mine",
+            passes: [DictationPlaybackPass(source: .mine, delayAfterSeconds: 0)]
+        )
+        Task {
+            await playbackEngine.playProfile(word: entry, profile: profile) { _ in }
+        }
+    }
+
+    private func mineRecordingAvailable(for attempt: DictationAttemptLog) -> Bool {
+        guard let entry = words.first(where: { $0.seedNumber == attempt.seedNumber }) else { return false }
+        return hasMineRecording(for: entry)
+    }
+
+    private func hasMineRecording(for entry: VocabularyEntry) -> Bool {
+        guard let url = try? MinePronunciationStorage.fileURL(seedNumber: entry.seedNumber),
+              FileManager.default.fileExists(atPath: url.path),
+              let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let n = attrs[.size] as? NSNumber else { return false }
+        return n.uint64Value > 256
+    }
 }
 
 /// Shared row with live session complete summary (`DictationSessionView`).
@@ -124,86 +151,135 @@ struct DictationSessionCompleteAttemptRow: View {
     let attempt: DictationAttemptLog
     let glossaryWord: VocabularyEntry?
     let playTTS: () -> Void
+    let playMine: () -> Void
+    let hasMineRecording: Bool
 
     private var typedDisplay: String {
         let t = attempt.userInput.trimmingCharacters(in: .whitespacesAndNewlines)
         return t.isEmpty ? "—" : t
     }
 
+    private var canPlayTTS: Bool {
+        glossaryWord != nil
+    }
+
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .top, spacing: 12) {
             Text("\(displayIndex)")
-                .font(.subheadline.weight(.medium))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.blue)
-                .frame(width: 30, height: 30)
+                .frame(width: 34, height: 34)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.blue.opacity(0.08))
+                        .fill(Color.blue.opacity(0.1))
                 )
 
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(attempt.expectedLemma)
-                        .font(.caption.weight(.semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(2)
                     if attempt.isCorrect {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.caption.weight(.semibold))
+                            .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.green)
                     } else {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.orange.opacity(0.85))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.orange.opacity(0.9))
                     }
                 }
+
                 if let gloss = glossaryWord, !gloss.english.isEmpty {
                     Text(gloss.english)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                        .lineLimit(2)
                 }
-                Group {
-                    if attempt.isCorrect {
+
+                if attempt.isCorrect {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.green)
                         Text("Matched the lemma.")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                    } else {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("You typed")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.secondary)
-                            Text(typedDisplay)
-                                .font(.caption2.weight(.medium))
-                                .foregroundStyle(.red)
-                        }
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.green)
                     }
+                    .padding(.top, 2)
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        mistakeFeedbackBox(title: "Mistaken", value: typedDisplay, tint: .red)
+                        mistakeFeedbackBox(title: "Correct", value: attempt.expectedLemma, tint: .blue)
+                    }
+                    .padding(.top, 2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Button(action: playTTS) {
-                Image(systemName: "speaker.wave.2.fill")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(glossaryWord == nil ? .gray : .blue)
-                    .frame(width: 28, height: 28)
-                    .background(
-                        Circle().stroke(
-                            (glossaryWord == nil ? Color.gray : Color.blue).opacity(0.2),
-                            lineWidth: 1
-                        )
-                    )
+            VStack(spacing: 10) {
+                summaryAudioCircleButton(
+                    systemName: "speaker.wave.2.fill",
+                    isEnabled: canPlayTTS,
+                    action: playTTS
+                )
+                summaryAudioCircleButton(
+                    systemName: "mic.fill",
+                    isEnabled: hasMineRecording,
+                    action: playMine
+                )
             }
-            .buttonStyle(.plain)
-            .disabled(glossaryWord == nil)
+            .padding(.top, 2)
         }
-        .padding(10)
+        .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.secondarySystemGroupedBackground))
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color(.separator).opacity(0.35), lineWidth: 0.5)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilitySummary)
+    }
+
+    private func mistakeFeedbackBox(title: String, value: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(tint.opacity(0.85))
+            Text(value)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.primary)
+                .lineLimit(3)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(tint.opacity(0.12))
+        )
+    }
+
+    private func summaryAudioCircleButton(systemName: String, isEnabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(isEnabled ? .blue : .gray)
+                .frame(width: 30, height: 30)
+                .background(
+                    Circle().stroke(
+                        isEnabled ? Color.blue.opacity(0.22) : Color.gray.opacity(0.35),
+                        lineWidth: 1
+                    )
+                )
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
     }
 
     private var accessibilitySummary: String {
@@ -211,6 +287,6 @@ struct DictationSessionCompleteAttemptRow: View {
         if attempt.isCorrect {
             return "Word \(displayIndex): \(attempt.expectedLemma), \(result)."
         }
-        return "Word \(displayIndex): expected \(attempt.expectedLemma), you typed \(typedDisplay), \(result)."
+        return "Word \(displayIndex): expected \(attempt.expectedLemma), mistaken \(typedDisplay), \(result)."
     }
 }

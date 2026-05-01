@@ -433,13 +433,15 @@ struct DictationSessionView: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
 
-            LazyVStack(spacing: 8) {
+            LazyVStack(spacing: 12) {
                 ForEach(Array(completedSessionAttempts.enumerated()), id: \.element.id) { offset, attempt in
                     DictationSessionCompleteAttemptRow(
                         displayIndex: offset + 1,
                         attempt: attempt,
                         glossaryWord: words.first(where: { $0.seedNumber == attempt.seedNumber }),
-                        playTTS: { playLemmaTTS(for: attempt) }
+                        playTTS: { playLemmaTTS(for: attempt) },
+                        playMine: { playLemmaMine(for: attempt) },
+                        hasMineRecording: mineRecordingAvailableForSummary(for: attempt)
                     )
                 }
             }
@@ -456,6 +458,23 @@ struct DictationSessionView: View {
         Task {
             await playbackEngine.playProfile(word: entry, profile: profile) { _ in }
         }
+    }
+
+    private func playLemmaMine(for attempt: DictationAttemptLog) {
+        guard let entry = words.first(where: { $0.seedNumber == attempt.seedNumber }),
+              hasMineRecording(for: entry) else { return }
+        let profile = DictationTimingProfile(
+            mode: "session_summary_mine",
+            passes: [DictationPlaybackPass(source: .mine, delayAfterSeconds: 0)]
+        )
+        Task {
+            await playbackEngine.playProfile(word: entry, profile: profile) { _ in }
+        }
+    }
+
+    private func mineRecordingAvailableForSummary(for attempt: DictationAttemptLog) -> Bool {
+        guard let entry = words.first(where: { $0.seedNumber == attempt.seedNumber }) else { return false }
+        return hasMineRecording(for: entry)
     }
 
     private func submitStep() {
