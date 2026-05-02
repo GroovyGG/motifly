@@ -395,6 +395,8 @@ struct DictationMistakeAggregation: Identifiable {
     let displayUserInput: String
     let count: Int
     let lastSubmittedAt: Date
+    /// `DictationAttemptLog.errorType` from the most recent attempt in this aggregate (maps to weakness labels).
+    let latestErrorType: String?
 }
 
 private enum DictationMistakeAggregationBuilder {
@@ -405,6 +407,7 @@ private enum DictationMistakeAggregationBuilder {
             var count: Int
             var displayUserInput: String
             var lastSubmittedAt: Date
+            var latestErrorType: String?
         }
 
         var buckets: [String: Bucket] = [:]
@@ -419,10 +422,16 @@ private enum DictationMistakeAggregationBuilder {
                 if log.submittedAt >= existing.lastSubmittedAt {
                     existing.lastSubmittedAt = log.submittedAt
                     existing.displayUserInput = display
+                    existing.latestErrorType = log.errorType
                 }
                 buckets[key] = existing
             } else {
-                buckets[key] = Bucket(count: 1, displayUserInput: display, lastSubmittedAt: log.submittedAt)
+                buckets[key] = Bucket(
+                    count: 1,
+                    displayUserInput: display,
+                    lastSubmittedAt: log.submittedAt,
+                    latestErrorType: log.errorType
+                )
             }
         }
 
@@ -432,7 +441,8 @@ private enum DictationMistakeAggregationBuilder {
                     id: key.isEmpty ? "__normalized_empty__" : key,
                     displayUserInput: b.displayUserInput,
                     count: b.count,
-                    lastSubmittedAt: b.lastSubmittedAt
+                    lastSubmittedAt: b.lastSubmittedAt,
+                    latestErrorType: b.latestErrorType
                 )
             }
             .sorted { lhs, rhs in
@@ -494,6 +504,11 @@ struct ErroredAttemptsSection: View {
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                if let raw = row.latestErrorType, !raw.isEmpty {
+                    Text(DictationErrorKind.weaknessDisplayName(forStored: raw))
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.orange)
+                }
                 Text(row.lastSubmittedAt, style: .relative)
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)

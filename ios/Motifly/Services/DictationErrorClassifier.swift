@@ -124,7 +124,9 @@ enum DictationErrorClassifier {
 
         if distance == 2 {
             if nu == ne {
-                if isAdjacentTransposition(u, e) { return .spelling_mixed }
+                if isAdjacentTransposition(u, e) {
+                    return transpositionSpellingKind(u, e)
+                }
                 return doubleSubstitutionKind(u, e)
             }
             if delta == 2 { return .spelling_extra }
@@ -166,15 +168,31 @@ enum DictationErrorClassifier {
     }
 
     private static func isAdjacentTransposition(_ u: [Character], _ e: [Character]) -> Bool {
-        guard u.count == e.count, u.count >= 2 else { return false }
+        transpositionIndex(u, e) != nil
+    }
+
+    /// Index `i` where swapping `u[i]` and `u[i+1]` matches `e` (e.g. `deux` vs `duex`).
+    private static func transpositionIndex(_ u: [Character], _ e: [Character]) -> Int? {
+        guard u.count == e.count, u.count >= 2 else { return nil }
         for i in 0..<(u.count - 1) {
             if u[i] == e[i + 1], u[i + 1] == e[i] {
                 let prefixMatch = (0..<i).allSatisfy { u[$0] == e[$0] }
                 let suffixMatch = ((i + 2)..<u.count).allSatisfy { u[$0] == e[$0] }
-                if prefixMatch, suffixMatch { return true }
+                if prefixMatch, suffixMatch { return i }
             }
         }
-        return false
+        return nil
+    }
+
+    /// Adjacent swap: if either swapped letter is a vowel → `spelling_vowel` (e.g. `deux`/`duex`).
+    private static func transpositionSpellingKind(_ u: [Character], _ e: [Character]) -> DictationErrorKind {
+        guard let i = transpositionIndex(u, e) else { return .spelling_mixed }
+        let a1 = stripDiacritics(String(u[i])).lowercased()
+        let a2 = stripDiacritics(String(u[i + 1])).lowercased()
+        if isVowelLetter(a1) || isVowelLetter(a2) {
+            return .spelling_vowel
+        }
+        return .spelling_consonant
     }
 
     private static func isVowelLetter(_ s: String) -> Bool {
