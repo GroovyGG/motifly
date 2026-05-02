@@ -44,8 +44,8 @@ final class DictationWordStats {
     /// Sum of replay counts over the recent window; helper for listeningScore math.
     var replaySumLast10: Int = 0
 
-    /// Largest spelling subtype raw value, e.g. `spelling_vowel`. Nil when mastery is high
-    /// or no spelling-subtype errors yet.
+    /// Largest spelling subtype raw value, e.g. `spelling_vowel`. Nil when no spelling-subtype
+    /// error counts yet (all five buckets are zero).
     var mainWeakness: String?
 
     /// Suggested date for the next review of this word (V1 simplified schedule).

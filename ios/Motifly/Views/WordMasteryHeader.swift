@@ -6,7 +6,7 @@ import SwiftUI
 /// Reads `DictationWordStats` for `seedNumber` and shows three short stats
 /// from the V1 memory model (`french_dictation_memory_model.md`):
 ///   - Mastery percent
-///   - Main weakness (or "On track" when none)
+///   - Main weakness (or "On track" when no spelling-bucket counts yet)
 ///   - Next review date
 struct WordMasteryHeader: View {
     let seedNumber: Int

@@ -15,9 +15,6 @@ enum WordMasteryUpdater {
     /// Number of recent attempts considered for skill score aggregates.
     static let recentWindow: Int = 10
 
-    /// Threshold above which `mainWeakness` is suppressed in the UI.
-    static let strongMasteryThreshold: Double = 90
-
     /// Apply a freshly inserted `attempt` to `stats`. `recentLogs` should include the new
     /// attempt and be sorted by `submittedAt` ascending; the function reads only the last
     /// `recentWindow` entries.
@@ -78,7 +75,7 @@ enum WordMasteryUpdater {
         stats.overallMastery = overallMastery
         stats.replaySumLast10 = replaySum
 
-        stats.mainWeakness = computeMainWeakness(stats: stats, mastery: overallMastery)
+        stats.mainWeakness = computeMainWeakness(stats: stats)
 
         let scheduling = nextReview(
             isCorrect: attempt.isCorrect,
@@ -119,10 +116,8 @@ enum WordMasteryUpdater {
         }
     }
 
-    private static func computeMainWeakness(stats: DictationWordStats, mastery: Double) -> String? {
-        if mastery >= strongMasteryThreshold {
-            return nil
-        }
+    /// Picks the spelling subtype with the highest count (mastery does not suppress this).
+    private static func computeMainWeakness(stats: DictationWordStats) -> String? {
         let buckets: [(String, Int)] = [
             (DictationErrorKind.spelling_extra.rawValue, stats.spellingExtraCount),
             (DictationErrorKind.spelling_missing.rawValue, stats.spellingMissingCount),
