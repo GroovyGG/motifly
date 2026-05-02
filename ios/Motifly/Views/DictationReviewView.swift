@@ -395,7 +395,18 @@ struct ErroredAttemptsSection: View {
     let expectedLemma: String
     let wrongAttempts: [DictationAttemptLog]
 
+    @Query private var stats: [DictationWordStats]
+
+    init(seedNumber: Int, expectedLemma: String, wrongAttempts: [DictationAttemptLog]) {
+        self.expectedLemma = expectedLemma
+        self.wrongAttempts = wrongAttempts
+        let sid = seedNumber
+        _stats = Query(filter: #Predicate<DictationWordStats> { $0.seedNumber == sid })
+    }
+
     private static let displayLimit = 20
+
+    private var wordStats: DictationWordStats? { stats.first }
 
     /// Newest first so the latest mistake is on top.
     private var recentAttempts: [DictationAttemptLog] {
@@ -405,9 +416,25 @@ struct ErroredAttemptsSection: View {
             .map { $0 }
     }
 
+    private var dictationCorrectSummary: String? {
+        guard let s = wordStats, s.attemptCount > 0 else { return nil }
+        let pct = Int((Double(s.correctCount) / Double(s.attemptCount) * 100.0).rounded())
+        return "Lemma match: \(s.correctCount) correct / \(s.attemptCount) attempts (\(pct)%)."
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeading("Errored attempts")
+            if let line = dictationCorrectSummary {
+                Text(line)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("No dictation history for this word yet.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
             if recentAttempts.isEmpty {
                 Text("No spelling mistakes recorded yet.")
                     .font(.caption)

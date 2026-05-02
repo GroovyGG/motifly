@@ -508,7 +508,7 @@ struct PrepositionWordCardView: View {
     }
 
     private var erroredAttemptsPlaceholder: some View {
-        ErroredAttemptsSection(expectedLemma: entry.frenchLemma, wrongAttempts: wrongAttemptLogs)
+        ErroredAttemptsSection(seedNumber: entry.seedNumber, expectedLemma: entry.frenchLemma, wrongAttempts: wrongAttemptLogs)
     }
 
     private func prepareAudioSessionForFrenchTTS() {

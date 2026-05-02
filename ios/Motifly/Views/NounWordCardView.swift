@@ -418,7 +418,7 @@ struct NounWordCardView: View {
     }
 
     private var erroredAttemptsPlaceholder: some View {
-        ErroredAttemptsSection(expectedLemma: entry.frenchLemma, wrongAttempts: wrongAttemptLogs)
+        ErroredAttemptsSection(seedNumber: entry.seedNumber, expectedLemma: entry.frenchLemma, wrongAttempts: wrongAttemptLogs)
     }
 
     private func highlightedExample(french: String, lemma: String, color: Color) -> Text {
