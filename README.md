@@ -1,8 +1,34 @@
 # Motifly
 
-**Motifly** is a **local-first iOS** French study app (SwiftUI, SwiftData, AVFoundation). It bundles CSV vocabulary seeds, imports them into SwiftData on first launch, and offers **searchable dictionary cards** (nouns, verbs, adjectives, adverbs, determiners, pronouns, prepositions) with **French TTS** and optional **user “Mine” recordings** per entry. **Dictation** is a **lemma drill**: you see the **English gloss**, type the **French lemma**; sessions are grouped by seed `group assigned` ranges (50-word design target) across all imported entries, with per-group review, **per-word stats** (mastery, weakness buckets, next-review hints), and append-only study event tracking. A fourth tab, **Tool**, is a small **utilities hub**; today it includes **French pronunciation**—an IPA chart by category with example words and on-device TTS on the example.
+**Motifly** is a **local-first iOS French study app** built with **SwiftUI**, **SwiftData**, and **AVFoundation**.
 
-The repo also documents a **future cloud-backed** model (Postgres, sentence library, scoring API, grammar tags, media uploads). That platform is **not** what the shipped client does today; see **Current architecture** vs **Target architecture** below.
+It imports bundled CSV vocabulary seeds into SwiftData on first launch and provides searchable dictionary cards for nouns, verbs, adjectives, adverbs, determiners, pronouns, and prepositions. Each entry supports French TTS and optional user-recorded **“Mine” audio** for pronunciation comparison.
+
+## Core Features
+
+- **Vocabulary**: searchable dictionary, recent lookups, and kind-specific word cards.
+- **Dictation**: listen to the French word audio, type the correct French lemma, and receive a normalization-based spelling check.
+- **Study tracking**: grouped review sessions, per-word mastery, weakness signals, next-review hints, and append-only study events.
+- **Memory model**: tracks each word with a mastery score, weakness buckets, review count, last-reviewed date, next-review hint, and attempt history to support spaced review decisions.
+- **Home**: study dashboard with heatmap, progress cards, daily/weekly goals, settings, and debug timeline.
+- **Tool**: utilities hub, currently including a French pronunciation IPA chart with example-word TTS.
+
+## Memory Model
+
+Motifly uses a lightweight local memory model to estimate how well each word has been learned.
+
+For each vocabulary entry, the app can track:
+
+- **Mastery score**: overall learning strength for the word.
+- **Weakness buckets**: error categories such as spelling, accent marks, gender, conjugation, or recall difficulty.
+- **Review count**: how many times the word has been practiced.
+- **Correct / incorrect attempts**: historical performance across dictation sessions.
+- **Last reviewed date**: when the word was last practiced.
+- **Next-review hint**: a suggested review timing based on recent performance.
+- **Attempt logs**: append-only study events that preserve previous answers and outcomes.
+
+This model helps the app decide which words need more review, which words are becoming stable, and which specific weaknesses should be shown to the learner.
+
 
 ---
 
