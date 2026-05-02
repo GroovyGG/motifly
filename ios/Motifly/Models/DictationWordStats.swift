@@ -4,7 +4,7 @@ import SwiftData
 /// Per-word aggregate. Powers fast ordering (e.g. error-first / weak-first) and
 /// stores the V1 memory-model fields described in `docs/french_dictation_memory_model.md`.
 ///
-/// Weakness is **spelling-only**: five spelling subtypes. No separate accent/article/etc. buckets.
+/// Weakness is **spelling-only**: six spelling subtypes (including missing-accent vs letter errors).
 @Model
 final class DictationWordStats {
     @Attribute(.unique) var seedNumber: Int
@@ -35,6 +35,7 @@ final class DictationWordStats {
     var spellingErrorCount: Int = 0
     var spellingExtraCount: Int = 0
     var spellingMissingCount: Int = 0
+    var spellingAccentCount: Int = 0
     var spellingVowelCount: Int = 0
     var spellingConsonantCount: Int = 0
     var spellingMixedCount: Int = 0
@@ -45,7 +46,7 @@ final class DictationWordStats {
     var replaySumLast10: Int = 0
 
     /// Largest spelling subtype raw value, e.g. `spelling_vowel`. Nil when no spelling-subtype
-    /// error counts yet (all five buckets are zero).
+    /// error counts yet (all six buckets are zero).
     var mainWeakness: String?
 
     /// Suggested date for the next review of this word (V1 simplified schedule).
@@ -71,6 +72,7 @@ final class DictationWordStats {
         spellingErrorCount: Int = 0,
         spellingExtraCount: Int = 0,
         spellingMissingCount: Int = 0,
+        spellingAccentCount: Int = 0,
         spellingVowelCount: Int = 0,
         spellingConsonantCount: Int = 0,
         spellingMixedCount: Int = 0,
@@ -96,6 +98,7 @@ final class DictationWordStats {
         self.spellingErrorCount = spellingErrorCount
         self.spellingExtraCount = spellingExtraCount
         self.spellingMissingCount = spellingMissingCount
+        self.spellingAccentCount = spellingAccentCount
         self.spellingVowelCount = spellingVowelCount
         self.spellingConsonantCount = spellingConsonantCount
         self.spellingMixedCount = spellingMixedCount
