@@ -6,7 +6,7 @@ import SwiftUI
 /// Reads `DictationWordStats` for `seedNumber` and shows three short stats
 /// from the V1 memory model (`docs/french_dictation_memory_model.md`):
 ///   - Mastery percent (`overallMastery` when set; else lifetime accuracy from attempts)
-///   - Main weakness (or "On track" when no spelling-bucket counts yet)
+///   - Main weakness (dominant spelling subtype, or a neutral label plus a detail line below)
 ///   - Next review date
 struct WordMasteryHeader: View {
     let seedNumber: Int
@@ -34,12 +34,46 @@ struct WordMasteryHeader: View {
         return "—"
     }
 
+    /// Primary label in the Weakness chip (never the vague "On track").
     private var weaknessText: String {
         guard let stats = current else { return "—" }
         if let key = stats.mainWeakness {
             return DictationErrorKind.weaknessDisplayName(forStored: key)
         }
-        return "On track"
+        if stats.attemptCount == 0 {
+            return "—"
+        }
+        return "No dominant type"
+    }
+
+    /// Extra context under the three chips when weakness is not a single spelling subtype.
+    private var supplementLine: String? {
+        guard let stats = current else { return nil }
+        if stats.mainWeakness != nil { return nil }
+
+        if stats.attemptCount == 0 {
+            return "Dictation stats appear after you submit answers in a session."
+        }
+
+        var parts: [String] = []
+        if let d = stats.dictationScore {
+            parts.append("Recent dictation \(Int(d.rounded()))%")
+        }
+        if let sp = stats.spellingScore {
+            parts.append("spelling \(Int(sp.rounded()))%")
+        }
+        if let li = stats.listeningScore {
+            parts.append("listening \(Int(li.rounded()))%")
+        }
+        if let me = stats.meaningScore {
+            parts.append("meaning \(Int(me.rounded()))%")
+        }
+        if !parts.isEmpty {
+            return parts.joined(separator: " · ") + " (last \(WordMasteryUpdater.recentWindow) attempts)."
+        }
+
+        let life = Int((Double(stats.correctCount) / Double(max(1, stats.attemptCount)) * 100.0).rounded())
+        return "\(stats.attemptCount) dictation attempts, lifetime \(life)% correct — no recurring spelling subtype logged yet."
     }
 
     private var nextReviewText: String {
@@ -55,16 +89,27 @@ struct WordMasteryHeader: View {
     }
 
     var body: some View {
-        HStack(spacing: 10) {
-            chip(title: "Mastery", value: masteryText, tint: .blue)
-            chip(title: "Weakness", value: weaknessText, tint: weaknessTint)
-            chip(title: "Next review", value: nextReviewText, tint: .green)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                chip(title: "Mastery", value: masteryText, tint: .blue)
+                chip(title: "Weakness", value: weaknessText, tint: weaknessTint)
+                chip(title: "Next review", value: nextReviewText, tint: .green)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let line = supplementLine {
+                Text(line)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var weaknessTint: Color {
-        current?.mainWeakness == nil ? .green : .orange
+        guard let s = current else { return Color.secondary }
+        return s.mainWeakness == nil ? Color.secondary : Color.orange
     }
 
     private func chip(title: String, value: String, tint: Color) -> some View {
