@@ -30,6 +30,7 @@ struct DictationSessionView: View {
     /// Snapshotted logs for the summary UI (filled before `finishCurrentSession` clears `currentSessionId`).
     @State private var completedSessionAttempts: [DictationAttemptLog] = []
     @State private var showTranslationHint = false
+    @State private var showEmptyAnswerConfirmation = false
 
     private let frenchCharacterRows: [[String]] = [
         ["à", "â", "æ", "ç", "é", "è", "ê", "ë"],
@@ -43,6 +44,10 @@ struct DictationSessionView: View {
     private var current: VocabularyEntry? {
         guard currentIndex < activeWords.count else { return nil }
         return activeWords[currentIndex]
+    }
+
+    private var isUserInputTrimmedEmpty: Bool {
+        userInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var body: some View {
@@ -131,6 +136,14 @@ struct DictationSessionView: View {
                 dictationProgress.abandonSession(unitIndex: unitIndex, modelContext: modelContext)
                 finishCurrentSession(status: "abandoned")
             }
+        }
+        .alert("Skip this word?", isPresented: $showEmptyAnswerConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Skip") {
+                submitStep()
+            }
+        } message: {
+            Text("The answer field is empty. Skipping counts as an incorrect attempt for this word.")
         }
     }
 
@@ -429,7 +442,7 @@ struct DictationSessionView: View {
 
     private var nextWordSection: some View {
         Button {
-            submitStep()
+            presentSubmitOrConfirmIfEmpty()
         } label: {
             HStack {
                 Text("Next Word")
@@ -475,12 +488,12 @@ struct DictationSessionView: View {
                     .fill(Color(.secondarySystemGroupedBackground))
             )
 
-            Text("Attempts (play order)")
+            Text("Attempts (mistakes first)")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
 
             LazyVStack(spacing: 12) {
-                ForEach(Array(completedSessionAttempts.enumerated()), id: \.element.id) { offset, attempt in
+                ForEach(Array(completedSessionAttempts.orderedForDictationSessionSummary().enumerated()), id: \.element.id) { offset, attempt in
                     DictationSessionCompleteAttemptRow(
                         displayIndex: offset + 1,
                         attempt: attempt,
@@ -521,6 +534,16 @@ struct DictationSessionView: View {
     private func mineRecordingAvailableForSummary(for attempt: DictationAttemptLog) -> Bool {
         guard let entry = words.first(where: { $0.seedNumber == attempt.seedNumber }) else { return false }
         return hasMineRecording(for: entry)
+    }
+
+    /// Manual mode: require confirmation before submitting a blank answer as a skip.
+    private func presentSubmitOrConfirmIfEmpty() {
+        guard current != nil else { return }
+        if isUserInputTrimmedEmpty {
+            showEmptyAnswerConfirmation = true
+        } else {
+            submitStep()
+        }
     }
 
     private func submitStep() {
@@ -706,7 +729,13 @@ struct DictationSessionView: View {
         }
         guard !Task.isCancelled else { return }
         if isAutoMode && isAutoPlaybackStarted && !isUserReplay && isSessionActive && !sessionDone {
-            submitStep()
+            await MainActor.run {
+                if isUserInputTrimmedEmpty {
+                    showEmptyAnswerConfirmation = true
+                } else {
+                    submitStep()
+                }
+            }
         }
     }
 

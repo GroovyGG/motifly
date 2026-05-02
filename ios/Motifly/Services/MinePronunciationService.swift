@@ -1,6 +1,7 @@
 import AVFoundation
 import Combine
 import Foundation
+import SwiftUI
 
 /// File paths and helpers for user-recorded pronunciations ("Mine") per vocabulary seed number.
 enum MinePronunciationStorage {
@@ -51,6 +52,30 @@ final class MineRecordingCoordinator: NSObject, ObservableObject {
     @Published private(set) var isRecording = false
     @Published private(set) var awaitingSaveConfirmation = false
     @Published private(set) var hasMineRecording = false
+
+    // MARK: - Record button presentation (word card header)
+
+    var recordControlSymbolName: String {
+        if isRecording { return "stop.circle.fill" }
+        return hasMineRecording ? "record.circle.fill" : "record.circle"
+    }
+
+    var recordControlTint: Color {
+        if isRecording { return .red }
+        if hasMineRecording { return .green }
+        return Color.accentColor
+    }
+
+    var recordControlAccessibilityLabel: String {
+        if isRecording { return "Stop recording" }
+        if hasMineRecording { return "Replace my pronunciation recording" }
+        return "Record my pronunciation"
+    }
+
+    /// Play Mine button: green when a saved take exists (enabled), muted when none.
+    var minePlaybackTint: Color {
+        hasMineRecording ? .green : .secondary
+    }
 
     private var seedNumber: Int = 0
     private var recorder: AVAudioRecorder?
