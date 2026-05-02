@@ -388,8 +388,9 @@ struct DictationReviewView: View {
 
 // MARK: - Shared: errored attempts on vocab cards
 
-/// Vocabulary card section: recent wrong dictation attempts for this lemma, one row per attempt,
-/// including `DictationAttemptLog.errorType` (e.g. `spelling_mixed`) mapped for display.
+/// Vocabulary card section: recent wrong dictation attempts for this lemma, one row per attempt.
+/// Error subtype is derived with `DictationErrorClassifier` from stored input (not only `errorType`)
+/// so legacy `other` rows still show the current spelling/listening label when possible.
 struct ErroredAttemptsSection: View {
     let expectedLemma: String
     let wrongAttempts: [DictationAttemptLog]
@@ -427,10 +428,22 @@ struct ErroredAttemptsSection: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    /// Re-run the classifier so legacy rows stored as `other` (or pre-migration types) show the
+    /// current spelling subtype when the stored inputs still support it.
+    private func displayErrorKind(for log: DictationAttemptLog) -> DictationErrorKind {
+        DictationErrorClassifier.classify(
+            userInput: log.userInput,
+            expectedLemma: log.expectedLemma,
+            replayCount: log.replayCount,
+            isCorrect: log.isCorrect
+        )
+    }
+
     private func attemptRow(_ log: DictationAttemptLog) -> some View {
         let trimmed = log.userInput.trimmingCharacters(in: .whitespacesAndNewlines)
         let display = trimmed.isEmpty ? "—" : trimmed
-        let typeRaw = log.errorType?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let kind = displayErrorKind(for: log)
+        let errorLabel = DictationErrorKind.weaknessDisplayName(forStored: kind.rawValue)
 
         return HStack(alignment: .center, spacing: 10) {
             Image(systemName: "exclamationmark.circle.fill")
@@ -439,28 +452,23 @@ struct ErroredAttemptsSection: View {
                 .frame(width: 28, height: 28)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(display)
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(2)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(display)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(errorLabel)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(kind == .none ? Color.secondary : Color.orange)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(2)
+                        .layoutPriority(1)
+                }
                 Text("Expected: \(expectedLemma)")
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                if let raw = typeRaw, !raw.isEmpty {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(DictationErrorKind.weaknessDisplayName(forStored: raw))
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.orange)
-                        Text("(\(raw))")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .monospaced()
-                    }
-                } else {
-                    Text("(no error type)")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
                 Text(log.submittedAt, style: .relative)
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
