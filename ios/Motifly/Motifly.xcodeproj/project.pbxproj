@@ -49,6 +49,8 @@
 		BF29 /* DictationErrorClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR29 /* DictationErrorClassifier.swift */; };
 		BF2A /* WordMasteryUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2A /* WordMasteryUpdater.swift */; };
 		BF2B /* WordMasteryHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2B /* WordMasteryHeader.swift */; };
+		BF2C /* ToolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2C /* ToolView.swift */; };
+		BF2D /* FrenchPronunciationToolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2D /* FrenchPronunciationToolView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -95,6 +97,8 @@
 		FR29 /* DictationErrorClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationErrorClassifier.swift; sourceTree = "<group>"; };
 		FR2A /* WordMasteryUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMasteryUpdater.swift; sourceTree = "<group>"; };
 		FR2B /* WordMasteryHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMasteryHeader.swift; sourceTree = "<group>"; };
+		FR2C /* ToolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolView.swift; sourceTree = "<group>"; };
+		FR2D /* FrenchPronunciationToolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrenchPronunciationToolView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -200,6 +204,8 @@
 				FR1A /* PronounWordCardView.swift */,
 				FR1C /* PrepositionWordCardView.swift */,
 				FR2B /* WordMasteryHeader.swift */,
+				FR2C /* ToolView.swift */,
+				FR2D /* FrenchPronunciationToolView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -314,6 +320,8 @@
 				BF29 /* DictationErrorClassifier.swift in Sources */,
 				BF2A /* WordMasteryUpdater.swift in Sources */,
 				BF2B /* WordMasteryHeader.swift in Sources */,
+				BF2C /* ToolView.swift in Sources */,
+				BF2D /* FrenchPronunciationToolView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
