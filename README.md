@@ -1,6 +1,6 @@
 # Motifly
 
-**Motifly** is a **local-first iOS** French study app (SwiftUI, SwiftData, AVFoundation). It bundles CSV vocabulary seeds, imports them into SwiftData on first launch, and offers **searchable dictionary cards** (nouns, verbs, adjectives, adverbs, determiners, pronouns, prepositions) with **French TTS** and optional **user “Mine” recordings** per entry. **Dictation** is a **lemma drill**: you see the **English gloss**, type the **French lemma**; sessions are grouped by seed `group assigned` ranges (50-word design target) across all imported entries, with per-group accuracy/review and append-only study event tracking.
+**Motifly** is a **local-first iOS** French study app (SwiftUI, SwiftData, AVFoundation). It bundles CSV vocabulary seeds, imports them into SwiftData on first launch, and offers **searchable dictionary cards** (nouns, verbs, adjectives, adverbs, determiners, pronouns, prepositions) with **French TTS** and optional **user “Mine” recordings** per entry. **Dictation** is a **lemma drill**: you see the **English gloss**, type the **French lemma**; sessions are grouped by seed `group assigned` ranges (50-word design target) across all imported entries, with per-group review, **per-word stats** (mastery, weakness buckets, next-review hints), and append-only study event tracking. A fourth tab, **Tool**, is a small **utilities hub**; today it includes **French pronunciation**—an IPA chart by category with example words and on-device TTS on the example.
 
 The repo also documents a **future cloud-backed** model (Postgres, sentence library, scoring API, grammar tags, media uploads). That platform is **not** what the shipped client does today; see **Current architecture** vs **Target architecture** below.
 
@@ -10,7 +10,7 @@ The repo also documents a **future cloud-backed** model (Postgres, sentence libr
 
 Use this block if you need a **truthful** one-screen description of the project as it exists in this repository.
 
-**Motifly** — Personal iOS project (Swift / SwiftUI / SwiftData). Ships a **device-local French vocabulary** experience: bundled CSV seeds, SwiftData import, **Vocabulary** tab with search, recent lookups, and **kind-specific word cards** (nouns through prepositions). **Audio** uses **on-device** `AVSpeechSynthesizer` for French playback; vocabulary cards support optional **user-recorded “Mine”** takes for comparison. **Dictation** tab: **English prompt → type French lemma**, normalization-based check, grouped progression/review, and replayable per-attempt logs. **Home** is now a study dashboard (heatmap, progress cards, daily/weekly goals) and includes debug timeline entry for event validation.
+**Motifly** — Personal iOS project (Swift / SwiftUI / SwiftData). Ships a **device-local French vocabulary** experience: bundled CSV seeds, SwiftData import, **Vocabulary** tab with search, recent lookups, and **kind-specific word cards** (nouns through prepositions). **Audio** uses **on-device** `AVSpeechSynthesizer` for French playback; vocabulary cards support optional **user-recorded “Mine”** takes for comparison. **Dictation** tab: **English prompt → type French lemma**, normalization-based check, grouped sessions/review, **per-word mastery and weakness signals** stored in SwiftData, and replayable per-attempt logs. **Home** is a study dashboard (heatmap, progress cards, daily/weekly goals), settings entry, and debug timeline for event validation. **Tool** tab: utilities hub with **French pronunciation** (IPA reference + example-word TTS).
 
 **Not implemented in the client yet** (described only as **target** design in `docs/database_schema.md` / README): remote APIs for audio, sentence-level dictation with grammar tagging, retrieval scoring, review logs backed by a server, and real image upload pipelines.
 
@@ -20,7 +20,7 @@ Use this block if you need a **truthful** one-screen description of the project 
 
 Motifly is in **active development**. This repository holds:
 
-- **`ios/Motifly/`** — SwiftUI iOS app (local-first vocabulary and dictation; see **Current architecture** below).
+- **`ios/Motifly/`** — SwiftUI iOS app (local-first vocabulary, dictation, tool utilities; see **Current architecture** below).
 - **`docs/motifly_prd_mvp.md`** — original MVP product requirements (local-first, simpler tags).
 - **`docs/database_schema.md`** — **target PostgreSQL schema** and reference DDL (learner-centric, rich attempts, full-stack direction) for a future cloud-backed phase.
 
@@ -34,12 +34,26 @@ What runs in the tree **today**: a **single iOS client**, no backend service in 
 
 | Area | Implementation |
 | ---- | ---------------- |
-| **UI** | SwiftUI (`TabView`: Home, Vocabulary, Dictation). |
+| **UI** | SwiftUI (`TabView`: **Home**, **Vocabulary**, **Dictation**, **Tool**). |
 | **Persistence** | SwiftData over SQLite under Application Support (`VocabularyEntry`, `SearchHistoryEntry`, `DictationSession`, `DictationAttemptLog`, `DictationWordStats`, `VocabularyStudyEvent`). |
 | **Content load** | Bundled CSVs under `ios/Motifly/SeedData/` (copies of `data_seed/`); `CSVImportService` imports on first launch. |
 | **Vocabulary** | Search and recent history; entries open noun, verb, adjective, adverb, determiner, pronoun, or preposition word cards by kind. |
-| **Dictation** | Lemma typing against English gloss; grouped by seed `group assigned` (with fallback), supports review view + manual/auto playback flow. |
-| **Audio** | AVFoundation: French TTS for lemmas, optional user “Mine” recordings per entry, playback profiles for dictation auto flow. |
+| **Dictation** | Lemma typing against English gloss; units grouped by seed `group assigned` (with fallback). Per-attempt logs, spelling-focused error classification, `WordMasteryUpdater` updating `DictationWordStats` (mastery, main weakness, next review). Manual/auto playback (`DictationPlaybackEngine`), group review and weak-first ordering in the relevant UI. |
+| **Tools** | `ToolView` hub; **French pronunciation** (`FrenchPronunciationToolView`) — IPA sections (oral / nasal / semi / consonants), All / Vowels / Consonants filters, example-word TTS (stateless; no SwiftData). |
+| **Audio** | AVFoundation: French TTS for lemmas and tool examples; optional user “Mine” recordings per vocabulary entry; playback profiles for dictation auto flow. |
+
+### Dictation memory model (V1, local)
+
+The app implements a **per-word dictation memory model** on device: after each attempt, **`WordMasteryUpdater`** refreshes **`DictationWordStats`** with simplified **mastery** scores, **spelling-only** weakness buckets, **main weakness** labeling, and a **next review** schedule—grounded in attempt logs, replay/hint signals, and explicit design notes in the repo.
+
+**Design references (implemented direction, not future cloud schema):**
+
+| Document | Role |
+| -------- | ---- |
+| [`docs/french_dictation_memory_model.md`](docs/french_dictation_memory_model.md) | V1 memory model for dictation: concepts, fields, and how aggregates evolve from attempts. |
+| [`docs/mastery_weakness_next_review.zh.md`](docs/mastery_weakness_next_review.zh.md) | Mastery / weakness / next-review algorithm and how it surfaces in UI (Chinese). |
+
+Code touchpoints: `DictationWordStats`, `WordMasteryUpdater`, `DictationErrorClassifier`, `DictationWordOrdering`, dictation/review/word-card views that show mastery or weakness.
 
 ### Current local schema and timeline
 
@@ -55,7 +69,8 @@ The running app now maintains an append-only study timeline in local SwiftData:
 ```mermaid
 flowchart TB
   subgraph ios [iOS app — local only]
-    UI[SwiftUI]
+    UI[SwiftUI — four tabs]
+    Tools[Tool utilities — IPA pronunciation]
     SD[(SwiftData)]
     UD[(UserDefaults)]
     Seed[Bundled CSV seeds]
@@ -67,6 +82,7 @@ flowchart TB
   UI --> SD
   UI --> UD
   UI --> Logger
+  UI --> Tools
   Logger --> SD
   SD --> DebugUI
   AV --> UI

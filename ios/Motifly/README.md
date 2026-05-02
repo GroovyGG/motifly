@@ -5,10 +5,11 @@ Open **`Motifly.xcodeproj`** in this directory in Xcode 16+ (use **File → Open
 **Seed data:** canonical CSVs live in the repo at **`../../data_seed/`** (`seed_nouns`, `seed_verbs`, `seed_adjectives`, `seed_adv`, `seed_determiners`, `seed_pronouns`, `seed_prepositions`).  
 The app bundles copies under **`SeedData/`** next to the source tree; update those files when you change seeds, or re-copy from `data_seed/` before shipping.
 
-- **Home:** study dashboard (streak, weekly time/accuracy, study heatmap, group progress, vocabulary progress, daily/weekly goal cards).
+- **Home:** study dashboard (streak, weekly time/accuracy, study heatmap, group progress, vocabulary progress, daily/weekly goal cards); gear opens **Settings**.
 - **Vocabulary:** search and bundled CSV import from `SeedData/`; recent history + typed cards by entry kind (noun/verb/adjective/adverb/determiner/pronoun/preposition), with Mine recording workflow.
-- **Dictation:** grouped by assigned range groups (from seed `group assigned`, fallback by seed-number formula), supports all imported entries, with manual/auto playback and group review.
-- **Settings:** dedicated settings screen (goals, theme color, reminders, study preferences, about/debug entry).
+- **Dictation:** grouped by assigned range groups (from seed `group assigned`, fallback by seed-number formula); manual/auto playback (`DictationPlaybackEngine`), review flows, per-word `DictationWordStats` (mastery / weakness / next review) updated from attempts.
+- **Tool:** utilities hub (`ToolView`); **French pronunciation** opens an IPA chart with filters and example-word TTS.
+- **Settings:** goals, theme color, reminders, study preferences, about/debug entry (from Home toolbar).
 
 ## Current local data schema (SwiftData)
 
@@ -18,7 +19,7 @@ Registered in `MotiflyApp` schema:
 - `SearchHistoryEntry` — recent lookup index (per-seed last searched time).
 - `DictationSession` — session lifecycle + summary counts/config snapshot.
 - `DictationAttemptLog` — per-attempt event log (`promptShownAt`, `submittedAt`, replay info, correctness, normalized forms).
-- `DictationWordStats` — per-word aggregate stats for ordering/review.
+- `DictationWordStats` — per-word aggregates for the **V1 dictation memory model** (mastery, weakness buckets, next review); updated by `WordMasteryUpdater` after attempts (see `docs/french_dictation_memory_model.md`, `docs/mastery_weakness_next_review.zh.md`).
 - `VocabularyStudyEvent` — append-only cross-feature timeline (`eventType`, `occurredAt`, `contextJSON`).
 
 ## Study event timeline
