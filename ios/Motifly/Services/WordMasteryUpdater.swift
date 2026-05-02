@@ -3,7 +3,7 @@ import SwiftData
 
 /// V1 mastery computation. Mutates `DictationWordStats` in place after each attempt.
 ///
-/// Design notes (see `french_dictation_memory_model.md` §3, §6, §10):
+/// Design notes (see `docs/french_dictation_memory_model.md` §3, §6, §10):
 /// - Skill scores are sliding-window aggregates over the most recent attempts so they
 ///   react to practice without needing a long history.
 /// - Skills the app does not yet measure (recognition, pronunciation, production) are

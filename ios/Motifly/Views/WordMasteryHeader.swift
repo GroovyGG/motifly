@@ -4,8 +4,8 @@ import SwiftUI
 /// Compact mastery summary that goes near the top of any word card.
 ///
 /// Reads `DictationWordStats` for `seedNumber` and shows three short stats
-/// from the V1 memory model (`french_dictation_memory_model.md`):
-///   - Mastery percent
+/// from the V1 memory model (`docs/french_dictation_memory_model.md`):
+///   - Mastery percent (`overallMastery` when set; else lifetime accuracy from attempts)
 ///   - Main weakness (or "On track" when no spelling-bucket counts yet)
 ///   - Next review date
 struct WordMasteryHeader: View {
@@ -21,8 +21,15 @@ struct WordMasteryHeader: View {
     private var current: DictationWordStats? { stats.first }
 
     private var masteryText: String {
-        if let m = current?.overallMastery {
+        guard let stats = current else { return "—" }
+        if let m = stats.overallMastery {
             return "\(Int(m.rounded()))%"
+        }
+        // Legacy rows or any install where stats exist before `overallMastery` was written:
+        // still show something useful from lifetime dictation counts.
+        if stats.attemptCount > 0 {
+            let p = Int((Double(stats.correctCount) / Double(stats.attemptCount) * 100.0).rounded())
+            return "\(p)%"
         }
         return "—"
     }

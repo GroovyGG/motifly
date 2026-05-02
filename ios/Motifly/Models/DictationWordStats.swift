@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 /// Per-word aggregate. Powers fast ordering (e.g. error-first / weak-first) and
-/// stores the V1 memory-model fields described in `french_dictation_memory_model.md`.
+/// stores the V1 memory-model fields described in `docs/french_dictation_memory_model.md`.
 ///
 /// Weakness is **spelling-only**: five spelling subtypes. No separate accent/article/etc. buckets.
 @Model
