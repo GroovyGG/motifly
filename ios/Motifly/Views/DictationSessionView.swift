@@ -57,24 +57,23 @@ struct DictationSessionView: View {
         userInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    private var sessionHorizontalPadding: CGFloat { 16 }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                if sessionDone {
+        Group {
+            if sessionDone {
+                ScrollView {
                     sessionSummary
-                } else if !isSessionActive {
-                    preSessionSetup
-                } else {
-                    progressHeader
-                    activeSessionControls
-                    promptCard
-                    frenchCharactersSection
-                    if !isAutoMode {
-                        nextWordSection
-                    }
+                        .padding(sessionHorizontalPadding)
                 }
+            } else if !isSessionActive {
+                ScrollView {
+                    preSessionSetup
+                        .padding(sessionHorizontalPadding)
+                }
+            } else {
+                activeSessionScrollContent
             }
-            .padding(16)
         }
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle(sessionSubset == .lastWrongReview ? "Wrong words" : "Dictation")
@@ -153,6 +152,32 @@ struct DictationSessionView: View {
             }
         } message: {
             Text("The answer field is empty. Skipping counts as an incorrect attempt for this word.")
+        }
+    }
+
+    /// Active dictation: scrollable middle + pinned "Next Word" above keyboard (manual mode).
+    @ViewBuilder
+    private var activeSessionScrollContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                progressHeader
+                activeSessionControls
+                promptCard
+                frenchCharactersSection
+            }
+            .padding(sessionHorizontalPadding)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if !isAutoMode {
+                VStack(spacing: 0) {
+                    nextWordSection
+                        .padding(.horizontal, sessionHorizontalPadding)
+                        .padding(.vertical, 8)
+                }
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemGroupedBackground))
+            }
         }
     }
 
