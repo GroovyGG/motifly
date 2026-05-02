@@ -388,90 +388,32 @@ struct DictationReviewView: View {
 
 // MARK: - Shared: errored attempts on vocab cards
 
-/// One grouped wrong spelling: same normalized typed input aggregated across attempts.
-struct DictationMistakeAggregation: Identifiable {
-    /// Stable grouping key (`normalizedInput`).
-    let id: String
-    let displayUserInput: String
-    let count: Int
-    let lastSubmittedAt: Date
-    /// `DictationAttemptLog.errorType` from the most recent attempt in this aggregate (maps to weakness labels).
-    let latestErrorType: String?
-}
-
-private enum DictationMistakeAggregationBuilder {
-    static func topAggregatedMistakes(from wrongAttempts: [DictationAttemptLog], limit: Int) -> [DictationMistakeAggregation] {
-        guard !wrongAttempts.isEmpty else { return [] }
-
-        struct Bucket {
-            var count: Int
-            var displayUserInput: String
-            var lastSubmittedAt: Date
-            var latestErrorType: String?
-        }
-
-        var buckets: [String: Bucket] = [:]
-
-        for log in wrongAttempts {
-            let key = log.normalizedInput
-            let trimmedDisplay = log.userInput.trimmingCharacters(in: .whitespacesAndNewlines)
-            let display = trimmedDisplay.isEmpty ? "—" : trimmedDisplay
-
-            if var existing = buckets[key] {
-                existing.count += 1
-                if log.submittedAt >= existing.lastSubmittedAt {
-                    existing.lastSubmittedAt = log.submittedAt
-                    existing.displayUserInput = display
-                    existing.latestErrorType = log.errorType
-                }
-                buckets[key] = existing
-            } else {
-                buckets[key] = Bucket(
-                    count: 1,
-                    displayUserInput: display,
-                    lastSubmittedAt: log.submittedAt,
-                    latestErrorType: log.errorType
-                )
-            }
-        }
-
-        let ranked = buckets
-            .map { key, b in
-                DictationMistakeAggregation(
-                    id: key.isEmpty ? "__normalized_empty__" : key,
-                    displayUserInput: b.displayUserInput,
-                    count: b.count,
-                    lastSubmittedAt: b.lastSubmittedAt,
-                    latestErrorType: b.latestErrorType
-                )
-            }
-            .sorted { lhs, rhs in
-                if lhs.count != rhs.count { return lhs.count > rhs.count }
-                return lhs.lastSubmittedAt > rhs.lastSubmittedAt
-            }
-        return Array(ranked.prefix(limit))
-    }
-}
-
-/// Vocabulary card section: most common wrong inputs for this word (aligned with review row styling).
+/// Vocabulary card section: recent wrong dictation attempts for this lemma, one row per attempt,
+/// including `DictationAttemptLog.errorType` (e.g. `spelling_mixed`) mapped for display.
 struct ErroredAttemptsSection: View {
     let expectedLemma: String
     let wrongAttempts: [DictationAttemptLog]
 
-    private var rows: [DictationMistakeAggregation] {
-        DictationMistakeAggregationBuilder.topAggregatedMistakes(from: wrongAttempts, limit: 5)
+    private static let displayLimit = 20
+
+    /// Newest first so the latest mistake is on top.
+    private var recentAttempts: [DictationAttemptLog] {
+        wrongAttempts
+            .sorted { $0.submittedAt > $1.submittedAt }
+            .prefix(Self.displayLimit)
+            .map { $0 }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeading("Errored attempts")
-            if rows.isEmpty {
+            if recentAttempts.isEmpty {
                 Text("No spelling mistakes recorded yet.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(rows) { row in
-                    mistakeRow(row)
+                ForEach(recentAttempts, id: \.id) { log in
+                    attemptRow(log)
                 }
             }
         }
@@ -485,31 +427,41 @@ struct ErroredAttemptsSection: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func mistakeRow(_ row: DictationMistakeAggregation) -> some View {
-        HStack(alignment: .center, spacing: 10) {
-            Text("\(row.count)×")
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.blue)
-                .frame(width: 30, height: 30)
-                .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.blue.opacity(0.08))
-                )
+    private func attemptRow(_ log: DictationAttemptLog) -> some View {
+        let trimmed = log.userInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        let display = trimmed.isEmpty ? "—" : trimmed
+        let typeRaw = log.errorType?.trimmingCharacters(in: .whitespacesAndNewlines)
 
-            VStack(alignment: .leading, spacing: 1) {
-                Text(row.displayUserInput)
+        return HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "exclamationmark.circle.fill")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.orange.opacity(0.85))
+                .frame(width: 28, height: 28)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(display)
                     .font(.caption.weight(.semibold))
                     .lineLimit(2)
                 Text("Expected: \(expectedLemma)")
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                if let raw = row.latestErrorType, !raw.isEmpty {
-                    Text(DictationErrorKind.weaknessDisplayName(forStored: raw))
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.orange)
+                if let raw = typeRaw, !raw.isEmpty {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(DictationErrorKind.weaknessDisplayName(forStored: raw))
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.orange)
+                        Text("(\(raw))")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .monospaced()
+                    }
+                } else {
+                    Text("(no error type)")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
                 }
-                Text(row.lastSubmittedAt, style: .relative)
+                Text(log.submittedAt, style: .relative)
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
             }
