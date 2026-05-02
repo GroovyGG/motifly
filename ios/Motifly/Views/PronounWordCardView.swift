@@ -95,7 +95,7 @@ struct PronounWordCardView: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title)
-            .font(.caption2.weight(.semibold))
+            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
             .foregroundStyle(.secondary)
     }
 
@@ -104,17 +104,17 @@ struct PronounWordCardView: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(entry.frenchLemma)
-                        .font(.title.weight(.bold))
+                        .font(MotiflyTokens.TypeStyle.font(.title, weight: .bold))
                         .foregroundStyle(accentColor)
                     HStack(spacing: 8) {
                         Text("Pronoun")
-                            .font(.caption2.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(Capsule().fill(Color(.tertiarySystemFill)))
                         if entry.proIsFunctionWord == true {
                             Text("Function word")
-                                .font(.caption2.weight(.semibold))
+                                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(Capsule().fill(Color(.tertiarySystemFill)))
@@ -175,7 +175,7 @@ struct PronounWordCardView: View {
                         .fill(Color.red)
                         .frame(width: 8, height: 8)
                     Text("Recording…")
-                        .font(.caption2.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                         .foregroundStyle(.red)
                 }
             }
@@ -183,13 +183,13 @@ struct PronounWordCardView: View {
             if mineCoordinator.awaitingSaveConfirmation {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Save this take as your Mine pronunciation?")
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                         .foregroundStyle(.secondary)
                     Button {
                         mineCoordinator.playPendingRecording()
                     } label: {
                         Label("Replay take", systemImage: "play.circle.fill")
-                            .font(.caption.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     }
                     .buttonStyle(.bordered)
                     .tint(.accentColor)
@@ -205,7 +205,7 @@ struct PronounWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.borderedProminent)
 
                         Button("Discard", role: .cancel) {
@@ -219,7 +219,7 @@ struct PronounWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.bordered)
                     }
                 }
@@ -256,10 +256,10 @@ struct PronounWordCardView: View {
     private func translationPairRow(title: String, text: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.secondary)
             Text(text)
-                .font(.callout)
+                .font(MotiflyTokens.TypeStyle.callout)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -269,11 +269,11 @@ struct PronounWordCardView: View {
             sectionHeading("Example sentence")
             if !entry.exampleFrench.isEmpty {
                 highlightedExampleFrench()
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
             }
             if !entry.exampleEnglish.isEmpty {
                 Text(entry.exampleEnglish)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .foregroundStyle(.secondary)
             }
         }
@@ -301,7 +301,7 @@ struct PronounWordCardView: View {
         DisclosureGroup(isExpanded: $pronounTypeExpanded) {
             if let t = entry.proPronounType?.trimmingCharacters(in: .whitespacesAndNewlines), !t.isEmpty {
                 Text(t)
-                    .font(.title3.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.statValue)
                     .foregroundStyle(accentColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 8)
@@ -322,7 +322,7 @@ struct PronounWordCardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         sectionHeading("Replaces")
                         Text(r)
-                            .font(.callout)
+                            .font(MotiflyTokens.TypeStyle.callout)
                             .foregroundStyle(.primary)
                     }
                 }
@@ -330,7 +330,7 @@ struct PronounWordCardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         sectionHeading("Position")
                         Text(p)
-                            .font(.callout)
+                            .font(MotiflyTokens.TypeStyle.callout)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -338,7 +338,7 @@ struct PronounWordCardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         sectionHeading("Usage")
                         Text(u)
-                            .font(.callout)
+                            .font(MotiflyTokens.TypeStyle.callout)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -346,7 +346,7 @@ struct PronounWordCardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         sectionHeading("Memory note")
                         Text(m)
-                            .font(.callout)
+                            .font(MotiflyTokens.TypeStyle.callout)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -364,11 +364,11 @@ struct PronounWordCardView: View {
             if !v.isEmpty {
                 HStack(alignment: .top) {
                     Text(title)
-                        .font(.caption2.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                         .foregroundStyle(.secondary)
                         .frame(width: 88, alignment: .leading)
                     Text(v)
-                        .font(.callout)
+                        .font(MotiflyTokens.TypeStyle.callout)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -380,12 +380,12 @@ struct PronounWordCardView: View {
             VStack(alignment: .leading, spacing: 8) {
                 if exampleLines.isEmpty {
                     Text("—")
-                        .font(.callout)
+                        .font(MotiflyTokens.TypeStyle.callout)
                         .foregroundStyle(.tertiary)
                 } else {
                     ForEach(exampleLines, id: \.self) { line in
                         Text(line)
-                            .font(.callout)
+                            .font(MotiflyTokens.TypeStyle.callout)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
@@ -421,17 +421,17 @@ struct PronounWordCardView: View {
                     .overlay {
                         VStack(spacing: 6) {
                             Image(systemName: "photo")
-                                .font(.callout)
+                                .font(MotiflyTokens.TypeStyle.callout)
                                 .foregroundStyle(.secondary)
                             Text("Image")
-                                .font(.caption2)
+                                .font(MotiflyTokens.TypeStyle.captionSecondary)
                                 .foregroundStyle(.tertiary)
                         }
                     }
                     .accessibilityLabel("Memory image placeholder")
 
                 TextField("Add a memory hook…", text: $memoryNote, axis: .vertical)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .lineLimit(5...12)
                     .padding(10)
                     .frame(maxWidth: .infinity, minHeight: 88, alignment: .topLeading)
@@ -501,5 +501,5 @@ struct PronounWordCardView: View {
 
     private static let headerAudioButtonSide: CGFloat = 24
     private static let headerAudioControlOuter: CGFloat = 36
-    private static let headerAudioIconFont = Font.callout
+    private static let headerAudioIconFont = MotiflyTokens.TypeStyle.callout
 }

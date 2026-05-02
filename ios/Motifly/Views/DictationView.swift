@@ -41,10 +41,10 @@ struct DictationView: View {
                 )
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: MotiflyTokens.Space.xxl) {
                         headerCard
 
-                        LazyVStack(spacing: 14) {
+                        LazyVStack(spacing: MotiflyTokens.Space.lg) {
                             ForEach(unitGroups) { unit in
                                 unitCard(
                                     groupNumber: unit.groupNumber,
@@ -53,8 +53,8 @@ struct DictationView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 24)
+                    .padding(.horizontal, MotiflyTokens.Space.xl)
+                    .padding(.bottom, MotiflyTokens.Space.xxl + MotiflyTokens.Space.xs)
                 }
                 .background(dictationScreenBackground)
             }
@@ -63,28 +63,22 @@ struct DictationView: View {
     }
 
     private var dictationScreenBackground: some View {
-        Group {
-            if colorScheme == .dark {
-                Color(.systemGroupedBackground)
-            } else {
-                Color(red: 0.93, green: 0.95, blue: 0.98)
-            }
-        }
-        .ignoresSafeArea()
+        MotiflyTokens.Colors.dictationScreenBackground(colorScheme)
+            .ignoresSafeArea()
     }
 
     private var headerCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Dictation")
-                .font(.title3.weight(.bold))
+                .font(MotiflyTokens.TypeStyle.screenTitle)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
+        .padding(MotiflyTokens.Space.xl)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color(.secondarySystemGroupedBackground))
+            RoundedRectangle(cornerRadius: MotiflyTokens.Radius.dictationHeader, style: .continuous)
+                .fill(MotiflyTokens.Colors.cardSurface)
         )
-        .padding(.top, 8)
+        .padding(.top, MotiflyTokens.Space.sm)
     }
 
     private func unitCard(groupNumber: Int, wordsInUnit: [VocabularyEntry]) -> some View {
@@ -97,9 +91,9 @@ struct DictationView: View {
             HStack(alignment: .top) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text("Group \(groupNumber)")
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     Text("Words \(low)–\(high)")
-                        .font(.caption2)
+                        .font(MotiflyTokens.TypeStyle.captionSecondary)
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
@@ -142,7 +136,7 @@ struct DictationView: View {
     private func lastDictationBadge(for unitIndex: Int) -> some View {
         let text = lastDictationText(for: unitIndex)
         return Text(text)
-            .font(.caption.weight(.semibold))
+            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(Capsule().fill(Color(.tertiarySystemFill)))
@@ -164,12 +158,12 @@ struct DictationView: View {
     private func statPill(title: String, value: String) -> some View {
         VStack(spacing: 2) {
             Text(title)
-                .font(.caption2)
+                .font(MotiflyTokens.TypeStyle.captionSecondary)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
             Text(value)
-                .font(.subheadline.weight(.bold))
+                .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .bold))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -192,12 +186,12 @@ struct DictationView: View {
         } label: {
             VStack(spacing: 2) {
                 Text("Full")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.white.opacity(0.9))
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                 Text("session")
-                    .font(.caption2.weight(.bold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .bold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
@@ -245,12 +239,12 @@ struct DictationView: View {
             if wrongWords.isEmpty {
                 VStack(spacing: 2) {
                     Text("Wrong")
-                        .font(.caption2)
+                        .font(MotiflyTokens.TypeStyle.captionSecondary)
                         .foregroundStyle(.tertiary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
                     Text("words")
-                        .font(.caption2.weight(.bold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .bold))
                         .foregroundStyle(.tertiary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
@@ -277,12 +271,12 @@ struct DictationView: View {
                 } label: {
                     VStack(spacing: 2) {
                         Text("Wrong")
-                            .font(.caption2)
+                            .font(MotiflyTokens.TypeStyle.captionSecondary)
                             .foregroundStyle(.white.opacity(0.9))
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
                         Text("words")
-                            .font(.caption2.weight(.bold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .bold))
                             .foregroundStyle(.white)
                             .lineLimit(1)
                             .minimumScaleFactor(0.75)
@@ -328,14 +322,14 @@ struct DictationView: View {
     private func lastFinishSummaryLabel() -> some View {
         HStack(spacing: 8) {
             Image(systemName: "list.clipboard")
-                .font(.caption.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 .foregroundStyle(.blue)
             Text("Last finish summary")
-                .font(.caption.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 .foregroundStyle(.primary)
             Spacer(minLength: 0)
             Image(systemName: "chevron.right")
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.tertiary)
         }
         .padding(.horizontal, 12)
@@ -356,12 +350,12 @@ struct DictationView: View {
         } label: {
             VStack(spacing: 2) {
                 Text("Review")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                 Text("Words")
-                    .font(.caption2.weight(.bold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .bold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)

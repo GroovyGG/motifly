@@ -97,7 +97,7 @@ struct PrepositionWordCardView: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title)
-            .font(.caption2.weight(.semibold))
+            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
             .foregroundStyle(.secondary)
     }
 
@@ -108,17 +108,17 @@ struct PrepositionWordCardView: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(entry.frenchLemma)
-                        .font(.title.weight(.bold))
+                        .font(MotiflyTokens.TypeStyle.font(.title, weight: .bold))
                         .foregroundStyle(prepAccentColor)
                     HStack(alignment: .center, spacing: 8) {
                         Text("Preposition")
-                            .font(.caption2.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(Capsule().fill(Color(.tertiarySystemFill)))
                         if entry.prepIsFunctionWord == true {
                             Text("Function word")
-                                .font(.caption2.weight(.semibold))
+                                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(Capsule().fill(Color(.tertiarySystemFill)))
@@ -180,7 +180,7 @@ struct PrepositionWordCardView: View {
                         .fill(Color.red)
                         .frame(width: 8, height: 8)
                     Text("Recording…")
-                        .font(.caption2.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                         .foregroundStyle(.red)
                 }
             }
@@ -188,13 +188,13 @@ struct PrepositionWordCardView: View {
             if mineCoordinator.awaitingSaveConfirmation {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Save this take as your Mine pronunciation?")
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                         .foregroundStyle(.secondary)
                     Button {
                         mineCoordinator.playPendingRecording()
                     } label: {
                         Label("Replay take", systemImage: "play.circle.fill")
-                            .font(.caption.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     }
                     .buttonStyle(.bordered)
                     .tint(.accentColor)
@@ -210,7 +210,7 @@ struct PrepositionWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.borderedProminent)
 
                         Button("Discard", role: .cancel) {
@@ -224,7 +224,7 @@ struct PrepositionWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.bordered)
                     }
                 }
@@ -263,10 +263,10 @@ struct PrepositionWordCardView: View {
     private func translationPairRow(title: String, text: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.secondary)
             Text(text)
-                .font(.callout)
+                .font(MotiflyTokens.TypeStyle.callout)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -278,11 +278,11 @@ struct PrepositionWordCardView: View {
             sectionHeading("Example sentence")
             if !entry.exampleFrench.isEmpty {
                 highlightedExampleFrench()
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
             }
             if !entry.exampleEnglish.isEmpty {
                 Text(entry.exampleEnglish)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .foregroundStyle(.secondary)
             }
         }
@@ -316,10 +316,10 @@ struct PrepositionWordCardView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Core function")
-                                .font(.caption2.weight(.semibold))
+                                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                                 .foregroundStyle(.secondary)
                             Text(core)
-                                .font(.title3.weight(.semibold))
+                                .font(MotiflyTokens.TypeStyle.statValue)
                                 .foregroundStyle(prepAccentColor)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -332,7 +332,7 @@ struct PrepositionWordCardView: View {
 
                         if let note = entry.prepUsageNote?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
                             Text(note)
-                                .font(.callout)
+                                .font(MotiflyTokens.TypeStyle.callout)
                                 .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -356,7 +356,7 @@ struct PrepositionWordCardView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(lines, id: \.self) { line in
                             Text(line)
-                                .font(.callout)
+                                .font(MotiflyTokens.TypeStyle.callout)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 10)
@@ -390,7 +390,7 @@ struct PrepositionWordCardView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(collocationLines, id: \.self) { line in
                             Text(line)
-                                .font(.callout)
+                                .font(MotiflyTokens.TypeStyle.callout)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 10)
@@ -430,7 +430,7 @@ struct PrepositionWordCardView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 sectionHeading("Preposition type")
                                 Text(typeLine)
-                                    .font(.callout)
+                                    .font(MotiflyTokens.TypeStyle.callout)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
                         }
@@ -438,7 +438,7 @@ struct PrepositionWordCardView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 sectionHeading("Memory tip (seed)")
                                 Text(mem)
-                                    .font(.callout)
+                                    .font(MotiflyTokens.TypeStyle.callout)
                                     .foregroundStyle(.secondary)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
@@ -465,17 +465,17 @@ struct PrepositionWordCardView: View {
                     .overlay {
                         VStack(spacing: 6) {
                             Image(systemName: "photo")
-                                .font(.callout)
+                                .font(MotiflyTokens.TypeStyle.callout)
                                 .foregroundStyle(.secondary)
                             Text("Image")
-                                .font(.caption2)
+                                .font(MotiflyTokens.TypeStyle.captionSecondary)
                                 .foregroundStyle(.tertiary)
                         }
                     }
                     .accessibilityLabel("Memory image placeholder")
 
                 TextField("Add a memory hook…", text: $memoryNote, axis: .vertical)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .lineLimit(5...12)
                     .padding(10)
                     .frame(maxWidth: .infinity, minHeight: 88, alignment: .topLeading)
@@ -545,7 +545,7 @@ struct PrepositionWordCardView: View {
 
     private static let headerAudioButtonSide: CGFloat = 24
     private static let headerAudioControlOuter: CGFloat = 36
-    private static let headerAudioIconFont = Font.callout
+    private static let headerAudioIconFont = MotiflyTokens.TypeStyle.callout
 }
 
 #Preview {

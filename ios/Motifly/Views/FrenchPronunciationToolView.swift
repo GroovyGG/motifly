@@ -88,7 +88,7 @@ struct FrenchPronunciationToolView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Tap any sound to hear it.")
-                    .font(.subheadline)
+                    .font(MotiflyTokens.TypeStyle.rowPrimary)
                     .foregroundStyle(Color(.secondaryLabel))
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -168,9 +168,9 @@ struct FrenchPronunciationToolView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: icon(for: mode))
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 Text(mode.rawValue)
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
             }
             .foregroundStyle(selected ? Color.white : Color.accentColor)
             .padding(.horizontal, 12)
@@ -219,12 +219,12 @@ struct FrenchPronunciationToolView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
                 Image(systemName: systemImage)
-                    .font(.caption.weight(.bold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: 28, height: 28)
                     .background(Circle().fill(Color.accentColor))
                 Text("\(index). \(title)")
-                    .font(.headline.weight(.bold))
+                    .font(MotiflyTokens.TypeStyle.font(.headline, weight: .bold))
                     .foregroundStyle(Color(.label))
             }
 
@@ -240,13 +240,13 @@ struct FrenchPronunciationToolView: View {
     private func phonemeCard(_ item: Phoneme) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(item.ipaDisplay.precomposedStringWithCanonicalMapping)
-                .font(.title3)
+                .font(MotiflyTokens.TypeStyle.font(.title3))
                 .foregroundStyle(Color.blue)
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text(item.exampleWord)
-                .font(.caption.weight(.medium))
+                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .medium))
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
@@ -259,7 +259,7 @@ struct FrenchPronunciationToolView: View {
                     speakExample(item.exampleWord)
                 } label: {
                     Image(systemName: "speaker.wave.2.fill")
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(Circle().fill(Color.accentColor))

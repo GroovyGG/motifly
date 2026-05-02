@@ -12,7 +12,7 @@ struct ToolView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Tap a tool to open it when available.")
-                    .font(.subheadline)
+                    .font(MotiflyTokens.TypeStyle.rowPrimary)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -42,7 +42,7 @@ struct ToolView: View {
     private func toolRow(title: String, detail: String, symbol: String, showChevron: Bool = true) -> some View {
         HStack(alignment: .center, spacing: 14) {
             Image(systemName: symbol)
-                .font(.title2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.title2, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: 48, height: 48)
                 .background(
@@ -52,10 +52,10 @@ struct ToolView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.headline.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.sectionTitle)
                     .foregroundStyle(.primary)
                 Text(detail)
-                    .font(.caption)
+                    .font(MotiflyTokens.TypeStyle.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.leading)
             }
@@ -64,7 +64,7 @@ struct ToolView: View {
 
             if showChevron {
                 Image(systemName: "chevron.right")
-                    .font(.subheadline.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                     .foregroundStyle(.tertiary)
             }
         }
