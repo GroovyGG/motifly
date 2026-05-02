@@ -23,6 +23,11 @@ struct ContentView: View {
                     DictationView()
                 }
             }
+            Tab("Tool", systemImage: "hammer") {
+                NavigationStack {
+                    ToolView()
+                }
+            }
         }
         .toolbarBackground(.visible, for: .tabBar)
         .task {
