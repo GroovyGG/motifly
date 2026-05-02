@@ -44,13 +44,18 @@ Use this block if you need a **truthful** one-screen description of the project 
 
 ## What this repo is
 
-Motifly is in **active development**. This repository holds:
+Motifly is **actively developed** as a **small monorepo**: the runnable product is an iOS app; everything else is **seed data**, **design docs**, and **tooling** for evolving both.
 
-- **`ios/Motifly/`** — SwiftUI iOS app (local-first vocabulary, dictation, tool utilities; see **Current architecture** below).
-- **`docs/motifly_prd_mvp.md`** — original MVP product requirements (local-first, simpler tags).
-- **`docs/database_schema.md`** — **target PostgreSQL schema** and reference DDL (learner-centric, rich attempts, full-stack direction) for a future cloud-backed phase.
+| What | Where | Notes |
+| ---- | ----- | ----- |
+| **Shipped client** | [`ios/Motifly/`](ios/Motifly/) | SwiftUI + SwiftData app (vocabulary, dictation, home dashboard, tools). Open `Motifly.xcodeproj`. Behavior and stack: **Current architecture** below; day-to-day notes: [`ios/Motifly/README.md`](ios/Motifly/README.md). |
+| **Bundled vocabulary CSVs** | [`ios/Motifly/SeedData/`](ios/Motifly/SeedData/) | Copied into the app target for import on first launch. |
+| **Canonical seed sources** | [`data_seed/`](data_seed/) | Authoritative CSVs (and related assets); update `SeedData` when you change seeds for a release. |
+| **Product & data design (local SwiftData)** | [`docs/motifly_prd_mvp.md`](docs/motifly_prd_mvp.md), [`docs/database_schema_v1_vocab.md`](docs/database_schema_v1_vocab.md), [`docs/french_dictation_memory_model.md`](docs/french_dictation_memory_model.md), [`docs/mastery_weakness_next_review.zh.md`](docs/mastery_weakness_next_review.zh.md) | MVP intent, v1 vocabulary fields, dictation **memory model V1**, mastery/weakness/review behavior. |
+| **Target backend schema (future)** | [`docs/database_schema.md`](docs/database_schema.md), [`docs/database_schema.zh.md`](docs/database_schema.zh.md) | **PostgreSQL** reference for a **planned** cloud phase—not what the iOS app implements today. See **Target architecture**. |
+| **Data-cleaning scripts** | [`scripts/data_cleaning/`](scripts/data_cleaning/) | Optional Python helpers for working with seed corpora. |
 
-The **target at-scale engineering model** (later section) goes beyond the original PRD: cloud backend, device-based learners, grammar as content, similarity scoring, and rollup progress. That stack is **not** implemented in the app yet; the shipped client is described under **Current architecture**.
+The **cloud-scale** API/Postgres/scoring story in this README is **design and DDL only** until a backend exists; the **only** executable surface in this tree is the **local-first iOS app**.
 
 ---
 
