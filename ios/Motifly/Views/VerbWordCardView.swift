@@ -38,26 +38,20 @@ struct VerbWordCardView: View {
 
     /// Verbs have no masculine/feminine split — use one green for the headword everywhere (prototype `text-green-700`).
     private var lemmaDisplayColor: Color {
-        if colorScheme == .dark {
-            return Color(red: 0.38, green: 0.82, blue: 0.55)
-        }
-        return Color(red: 0.09, green: 0.50, blue: 0.26)
+        MotiflyTokens.Colors.lemmaVerb(for: colorScheme)
     }
 
     private var memorySupportCardBackground: Color {
-        if colorScheme == .dark {
-            return Color(.secondarySystemGroupedBackground)
-        }
-        return Color(red: 1, green: 0.96, blue: 0.82)
+        MotiflyTokens.Colors.surfaceElevated(for: colorScheme)
     }
 
     private var cardSurfaceFill: Color {
-        Color(.secondarySystemGroupedBackground)
+        MotiflyTokens.Colors.cardSurface
     }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: MotiflyTokens.Space.md) {
                 headerBlock
                 translationBlock
                 exampleBlock
@@ -70,10 +64,10 @@ struct VerbWordCardView: View {
                 progressPlaceholder
                 erroredAttemptsPlaceholder
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 32)
+            .padding(.horizontal, MotiflyTokens.Space.xl)
+            .padding(.bottom, MotiflyTokens.Space.sectionBottom)
         }
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .background(MotiflyTokens.Colors.screenBackground.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             SearchHistoryService.recordSearch(modelContext: modelContext, seedNumber: entry.seedNumber)
@@ -106,7 +100,7 @@ struct VerbWordCardView: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title)
-            .font(.caption2.weight(.semibold))
+            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
             .foregroundStyle(.secondary)
     }
 
@@ -115,24 +109,24 @@ struct VerbWordCardView: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(entry.frenchLemma)
-                        .font(.title.weight(.bold))
+                        .font(MotiflyTokens.TypeStyle.font(.title, weight: .bold))
                         .foregroundStyle(lemmaDisplayColor)
                     HStack(alignment: .center, spacing: 8) {
                         Text("Verb")
-                            .font(.caption2.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(Capsule().fill(Color(.tertiarySystemFill)))
                         if let g = entry.verbGroup, !g.isEmpty {
                             Text(g)
-                                .font(.caption2.weight(.semibold))
+                                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(Capsule().fill(Color(.tertiarySystemFill)))
                         }
                         if let a = entry.verbAuxiliary, !a.isEmpty {
                             Text("aux: \(a)")
-                                .font(.caption2)
+                                .font(MotiflyTokens.TypeStyle.captionSecondary)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -192,7 +186,7 @@ struct VerbWordCardView: View {
                         .fill(Color.red)
                         .frame(width: 8, height: 8)
                     Text("Recording…")
-                        .font(.caption2.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                         .foregroundStyle(.red)
                 }
             }
@@ -200,13 +194,13 @@ struct VerbWordCardView: View {
             if mineCoordinator.awaitingSaveConfirmation {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Save this take as your Mine pronunciation?")
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                         .foregroundStyle(.secondary)
                     Button {
                         mineCoordinator.playPendingRecording()
                     } label: {
                         Label("Replay take", systemImage: "play.circle.fill")
-                            .font(.caption.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     }
                     .buttonStyle(.bordered)
                     .tint(.accentColor)
@@ -222,7 +216,7 @@ struct VerbWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.borderedProminent)
 
                         Button("Discard", role: .cancel) {
@@ -236,7 +230,7 @@ struct VerbWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.bordered)
                     }
                 }
@@ -273,10 +267,10 @@ struct VerbWordCardView: View {
     private func translationPairRow(title: String, text: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.secondary)
             Text(text)
-                .font(.callout)
+                .font(MotiflyTokens.TypeStyle.callout)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -286,11 +280,11 @@ struct VerbWordCardView: View {
             sectionHeading("Example sentence")
             if !entry.exampleFrench.isEmpty {
                 highlightedExample(french: entry.exampleFrench, lemma: entry.frenchLemma, color: lemmaDisplayColor)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
             }
             if !entry.exampleEnglish.isEmpty {
                 Text(entry.exampleEnglish)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .foregroundStyle(.secondary)
             }
         }
@@ -327,10 +321,10 @@ struct VerbWordCardView: View {
     private var coreFormInfinitiveCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Infinitive")
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.secondary)
             Text(entry.frenchLemma)
-                .font(.title3.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.statValue)
                 .foregroundStyle(lemmaDisplayColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -345,10 +339,10 @@ struct VerbWordCardView: View {
     private var coreFormPasseComposeHelperCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Passé composé helper")
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.secondary)
             Text(passeComposeHelperDisplay)
-                .font(.title3.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.statValue)
                 .foregroundStyle(passeComposeHelperDisplay == "—" ? .secondary : .primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -386,7 +380,7 @@ struct VerbWordCardView: View {
         return Group {
             if pairs.isEmpty {
                 Text("No forms in seed data.")
-                    .font(.caption)
+                    .font(MotiflyTokens.TypeStyle.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12)
@@ -423,13 +417,13 @@ struct VerbWordCardView: View {
     private func conjugationPill(person: String, form: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(person)
-                .font(.subheadline)
+                .font(MotiflyTokens.TypeStyle.rowPrimary)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.85)
             Spacer(minLength: 4)
             Text(form)
-                .font(.subheadline.weight(.bold))
+                .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .bold))
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.trailing)
                 .lineLimit(3)
@@ -478,17 +472,17 @@ struct VerbWordCardView: View {
                     .overlay {
                         VStack(spacing: 6) {
                             Image(systemName: "photo")
-                                .font(.callout)
+                                .font(MotiflyTokens.TypeStyle.callout)
                                 .foregroundStyle(.secondary)
                             Text("Image")
-                                .font(.caption2)
+                                .font(MotiflyTokens.TypeStyle.captionSecondary)
                                 .foregroundStyle(.tertiary)
                         }
                     }
                     .accessibilityLabel("Memory image placeholder")
 
                 TextField("Add a memory hook…", text: $memoryNote, axis: .vertical)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .lineLimit(5...12)
                     .padding(10)
                     .frame(maxWidth: .infinity, minHeight: 88, alignment: .topLeading)
@@ -568,7 +562,7 @@ struct VerbWordCardView: View {
 
     private static let headerAudioButtonSide: CGFloat = 24
     private static let headerAudioControlOuter: CGFloat = 36
-    private static let headerAudioIconFont = Font.callout
+    private static let headerAudioIconFont = MotiflyTokens.TypeStyle.callout
 }
 
 #Preview {

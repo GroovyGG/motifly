@@ -17,25 +17,25 @@ struct DebugStudyTimelineView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Text(event.eventType)
-                                .font(.caption.weight(.semibold))
+                                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                             Spacer()
                             Text(event.occurredAt, style: .time)
-                                .font(.caption2)
+                                .font(MotiflyTokens.TypeStyle.captionSecondary)
                                 .foregroundStyle(.secondary)
                         }
                         if event.seedNumber > 0 {
                             Text("seed: \(event.seedNumber)")
-                                .font(.caption2)
+                                .font(MotiflyTokens.TypeStyle.captionSecondary)
                                 .foregroundStyle(.secondary)
                         }
                         if let context = event.contextJSON, !context.isEmpty {
                             Text(context)
-                                .font(.caption2)
+                                .font(MotiflyTokens.TypeStyle.captionSecondary)
                                 .foregroundStyle(.tertiary)
                                 .lineLimit(3)
                         }
                         Text(event.occurredAt, style: .relative)
-                            .font(.caption2)
+                            .font(MotiflyTokens.TypeStyle.captionSecondary)
                             .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 2)

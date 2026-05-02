@@ -66,15 +66,16 @@ struct VocabularyView: View {
                 Section("Results") {
                     if filtered.isEmpty {
                         Text("No matches. Try a French word, English gloss, POS tag (e.g. pro, det, prep), or words like pronoun / determiner / preposition.")
-                            .font(.subheadline)
+                            .font(MotiflyTokens.TypeStyle.rowPrimary)
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(filtered, id: \.seedNumber) { e in
                             NavigationLink {
                                 wordCard(for: e)
                             } label: {
-                                row(e)
+                                compactVocabularyRow(e)
                             }
+                            .listRowInsets(Self.compactRowInsets)
                         }
                     }
                 }
@@ -89,12 +90,14 @@ struct VocabularyView: View {
                         NavigationLink {
                             wordCard(for: e)
                         } label: {
-                            row(e)
+                            compactVocabularyRow(e)
                         }
+                        .listRowInsets(Self.compactRowInsets)
                     }
                 }
             }
         }
+        .environment(\.defaultMinListRowHeight, 36)
         .searchable(text: $searchText, prompt: "Lemma, English, POS (pro, det), or kind")
         .textInputAutocapitalization(.never)
         .onChange(of: searchText) { _, newValue in
@@ -105,6 +108,8 @@ struct VocabularyView: View {
         }
         .navigationTitle("Vocabulary")
     }
+
+    private static let compactRowInsets = EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 12)
 
     @ViewBuilder
     private func wordCard(for e: VocabularyEntry) -> some View {
@@ -126,18 +131,29 @@ struct VocabularyView: View {
         }
     }
 
-    private func row(_ e: VocabularyEntry) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(e.frenchLemma)
-                .font(.headline)
-            Text(e.english)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+    /// Dense list row so more recent searches fit on screen (two lines + narrow kind column).
+    private func compactVocabularyRow(_ e: VocabularyEntry) -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(e.frenchLemma)
+                    .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
+                    .lineLimit(1)
+                Text(e.english)
+                    .font(MotiflyTokens.TypeStyle.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+
             Text(rowKindLine(e))
-                .font(.caption)
+                .font(MotiflyTokens.TypeStyle.captionSecondary)
                 .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.trailing)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .frame(maxWidth: 100, alignment: .trailing)
         }
-        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
     }
 
     private func rowKindLine(_ e: VocabularyEntry) -> String {

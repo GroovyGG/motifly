@@ -57,24 +57,24 @@ struct DictationSessionView: View {
         userInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    /// Horizontal inset for dictation session scroll content (compact for keyboard).
+    private var sessionHorizontalPadding: CGFloat { MotiflyTokens.Space.lg }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                if sessionDone {
+        Group {
+            if sessionDone {
+                ScrollView {
                     sessionSummary
-                } else if !isSessionActive {
-                    preSessionSetup
-                } else {
-                    progressHeader
-                    activeSessionControls
-                    promptCard
-                    frenchCharactersSection
-                    if !isAutoMode {
-                        nextWordSection
-                    }
+                        .padding(sessionHorizontalPadding)
                 }
+            } else if !isSessionActive {
+                ScrollView {
+                    preSessionSetup
+                        .padding(sessionHorizontalPadding)
+                }
+            } else {
+                activeSessionScrollContent
             }
-            .padding(16)
         }
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle(sessionSubset == .lastWrongReview ? "Wrong words" : "Dictation")
@@ -156,10 +156,39 @@ struct DictationSessionView: View {
         }
     }
 
+    /// Active dictation: scrollable middle + pinned "Next Word" above keyboard (manual mode).
+    @ViewBuilder
+    private var activeSessionScrollContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: MotiflyTokens.Space.sm + 2) {
+                progressHeader
+                activeSessionControls
+                promptCard
+                frenchCharactersSection
+            }
+            .padding(.horizontal, sessionHorizontalPadding)
+            .padding(.top, MotiflyTokens.Space.sm)
+            .padding(.bottom, MotiflyTokens.Space.md)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if !isAutoMode {
+                VStack(spacing: 0) {
+                    nextWordSection
+                        .padding(.horizontal, sessionHorizontalPadding)
+                        .padding(.top, MotiflyTokens.Space.sm)
+                        .padding(.bottom, MotiflyTokens.Space.sm)
+                }
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemGroupedBackground))
+            }
+        }
+    }
+
     private var preSessionSetup: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Session setup")
-                .font(.title3.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.statValue)
 
             controls
 
@@ -168,10 +197,10 @@ struct DictationSessionView: View {
             } label: {
                 HStack {
                     Text("Start Dictation")
-                        .font(.headline.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.sectionTitle)
                     Spacer()
                     Image(systemName: "play.fill")
-                        .font(.headline.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.sectionTitle)
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 18)
@@ -193,18 +222,18 @@ struct DictationSessionView: View {
     }
 
     private var progressHeader: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: MotiflyTokens.Space.sm) {
             ProgressView(value: Double(currentIndex + 1), total: Double(max(1, activeWords.count)))
                 .tint(.blue)
             Text("\(min(currentIndex + 1, activeWords.count))/\(activeWords.count)")
-                .font(.headline)
+                .font(MotiflyTokens.TypeStyle.sectionTitle)
                 .foregroundStyle(.blue)
         }
-        .padding(.top, 4)
+        .padding(.top, 2)
     }
 
     private var controls: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: MotiflyTokens.Space.sm) {
             Picker("Mode", selection: $isAutoMode) {
                 Text("Manual Mode").tag(false)
                 Text("Auto Mode").tag(true)
@@ -223,10 +252,10 @@ struct DictationSessionView: View {
             .pickerStyle(.segmented)
 
             Text("Words this session: \(orderedUnitWords.count) / \(orderedUnitWords.count)")
-                .font(.caption)
+                .font(MotiflyTokens.TypeStyle.caption)
                 .foregroundStyle(.secondary)
         }
-        .padding(14)
+        .padding(MotiflyTokens.Space.md)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(.secondarySystemGroupedBackground))
@@ -235,7 +264,7 @@ struct DictationSessionView: View {
 
     /// Controls shown after session starts: keep mode/timing and word count, hide ordering.
     private var activeSessionControls: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: MotiflyTokens.Space.sm) {
             Picker("Mode", selection: $isAutoMode) {
                 Text("Manual Mode").tag(false)
                 Text("Auto Mode").tag(true)
@@ -247,10 +276,10 @@ struct DictationSessionView: View {
             }
 
             Text("Words this session: \(orderedUnitWords.count) / \(orderedUnitWords.count)")
-                .font(.caption)
+                .font(MotiflyTokens.TypeStyle.caption)
                 .foregroundStyle(.secondary)
         }
-        .padding(14)
+        .padding(MotiflyTokens.Space.md)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(.secondarySystemGroupedBackground))
@@ -258,7 +287,7 @@ struct DictationSessionView: View {
     }
 
     private var autoSequenceEditor: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: MotiflyTokens.Space.sm) {
             if isSessionActive {
                 Button {
                     if isAutoPlaybackStarted {
@@ -273,7 +302,7 @@ struct DictationSessionView: View {
                         Text(isAutoPlaybackStarted ? "Pause Auto Play" : "Start Auto Play")
                             .fontWeight(.semibold)
                     }
-                    .font(.subheadline)
+                    .font(MotiflyTokens.TypeStyle.rowPrimary)
                     .foregroundStyle(.blue)
                     .frame(maxWidth: .infinity)
                     .frame(height: 36)
@@ -285,11 +314,11 @@ struct DictationSessionView: View {
                 .buttonStyle(.plain)
             }
 
-            VStack(spacing: 8) {
+            VStack(spacing: MotiflyTokens.Space.sm) {
                 ForEach(autoPasses.indices, id: \.self) { idx in
                     HStack {
                         Text("Play \(idx + 1)")
-                            .font(.caption.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         Spacer()
                         Menu {
                             ForEach(0...10, id: \.self) { sec in
@@ -300,9 +329,9 @@ struct DictationSessionView: View {
                         } label: {
                             HStack(spacing: 4) {
                                 Text("\(Int(autoPasses[idx].delayAfterSeconds))s")
-                                    .font(.caption.weight(.semibold))
+                                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                                 Image(systemName: "chevron.up.chevron.down")
-                                    .font(.caption2)
+                                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                             }
                             .foregroundStyle(.blue)
                             .padding(.horizontal, 8)
@@ -317,7 +346,7 @@ struct DictationSessionView: View {
                 }
             }
         }
-        .padding(12)
+        .padding(MotiflyTokens.Space.sm)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(.tertiarySystemFill))
@@ -329,9 +358,9 @@ struct DictationSessionView: View {
             triggerMinePlayback()
         } label: {
             Image(systemName: "mic.fill")
-                .font(.title3)
+                .font(MotiflyTokens.TypeStyle.font(.title3))
                 .foregroundStyle(hasMineRecording(for: word) ? .blue : .gray)
-                .frame(width: 42, height: 42)
+                .frame(width: 36, height: 36)
                 .background(
                     Circle().stroke(
                         hasMineRecording(for: word) ? Color.blue.opacity(0.25) : Color.gray.opacity(0.35),
@@ -348,9 +377,9 @@ struct DictationSessionView: View {
             showTranslationHint.toggle()
         } label: {
             Image(systemName: "lightbulb.fill")
-                .font(.title3)
+                .font(MotiflyTokens.TypeStyle.font(.title3))
                 .foregroundStyle(showTranslationHint ? .white : .blue)
-                .frame(width: 42, height: 42)
+                .frame(width: 36, height: 36)
                 .background(
                     Circle()
                         .fill(showTranslationHint ? Color.blue : Color.blue.opacity(0.12))
@@ -363,15 +392,15 @@ struct DictationSessionView: View {
     }
 
     private var promptCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: MotiflyTokens.Space.sm) {
+            HStack(alignment: .center, spacing: MotiflyTokens.Space.sm) {
                 Button {
                     triggerPromptPlayback(isUserReplay: true)
                 } label: {
                     Image(systemName: "speaker.wave.2.fill")
-                        .font(.title3)
+                        .font(MotiflyTokens.TypeStyle.font(.title3))
                         .foregroundStyle(.blue)
-                        .frame(width: 42, height: 42)
+                        .frame(width: 36, height: 36)
                         .background(Circle().fill(Color.blue.opacity(0.12)))
                 }
                 .buttonStyle(.plain)
@@ -381,7 +410,7 @@ struct DictationSessionView: View {
                     manualMinePlaybackButton(for: word)
                 }
 
-                Spacer(minLength: 8)
+                Spacer(minLength: MotiflyTokens.Space.sm)
 
                 translationHintButton
             }
@@ -392,18 +421,18 @@ struct DictationSessionView: View {
                 .autocorrectionDisabled()
 
             if showTranslationHint, let word = current {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: MotiflyTokens.Space.xs + 2) {
                     Text(word.english)
-                        .font(.subheadline)
+                        .font(MotiflyTokens.TypeStyle.rowPrimary)
                         .foregroundStyle(.primary)
                     if let zh = word.chineseExplanation, !zh.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Text(zh)
-                            .font(.subheadline)
+                            .font(MotiflyTokens.TypeStyle.rowPrimary)
                             .foregroundStyle(.secondary)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(10)
+                .padding(MotiflyTokens.Space.sm)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .fill(Color.blue.opacity(0.08))
@@ -416,11 +445,11 @@ struct DictationSessionView: View {
 
             if let ok = lastWasCorrect, showResultHint {
                 Text(ok ? "Correct" : "Incorrect")
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     .foregroundStyle(ok ? .green : .red)
             }
         }
-        .padding(14)
+        .padding(MotiflyTokens.Space.md)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(.secondarySystemGroupedBackground))
@@ -428,18 +457,18 @@ struct DictationSessionView: View {
     }
 
     private var frenchCharactersSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: MotiflyTokens.Space.xs) {
+            VStack(spacing: MotiflyTokens.Space.xs) {
                 ForEach(frenchCharacterRows, id: \.self) { row in
-                    HStack(spacing: 8) {
+                    HStack(spacing: MotiflyTokens.Space.xs) {
                         ForEach(row, id: \.self) { char in
                             Button(char) {
                                 userInput.append(char)
                             }
-                            .font(.title3)
-                            .frame(maxWidth: .infinity, minHeight: 42)
+                            .font(MotiflyTokens.TypeStyle.callout)
+                            .frame(maxWidth: .infinity, minHeight: 34)
                             .background(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
                                     .fill(Color(.secondarySystemGroupedBackground))
                             )
                         }
@@ -455,14 +484,14 @@ struct DictationSessionView: View {
         } label: {
             HStack {
                 Text("Next Word")
-                    .font(.title3.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.statValue)
                 Spacer()
                 Image(systemName: "arrow.right")
-                    .font(.title3.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.statValue)
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 18)
-            .frame(height: 56)
+            .padding(.horizontal, MotiflyTokens.Space.lg)
+            .frame(height: 46)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.blue)
@@ -477,10 +506,10 @@ struct DictationSessionView: View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(spacing: 8) {
                 Text("Session complete")
-                    .font(.title3.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.statValue)
                     .frame(maxWidth: .infinity)
                 Text("Correct: \(correct)   Wrong: \(wrong)")
-                    .font(.subheadline.weight(.medium))
+                    .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .medium))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
                 Button("Again") {
@@ -498,7 +527,7 @@ struct DictationSessionView: View {
             )
 
             Text("Attempts (mistakes first)")
-                .font(.caption.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 .foregroundStyle(.secondary)
 
             LazyVStack(spacing: 12) {

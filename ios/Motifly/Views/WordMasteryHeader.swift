@@ -99,7 +99,7 @@ struct WordMasteryHeader: View {
 
             if let line = supplementLine {
                 Text(line)
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -115,10 +115,10 @@ struct WordMasteryHeader: View {
     private func chip(title: String, value: String, tint: Color) -> some View {
         VStack(spacing: 4) {
             Text(title)
-                .font(.caption2)
+                .font(MotiflyTokens.TypeStyle.captionSecondary)
                 .foregroundStyle(.secondary)
             Text(value)
-                .font(.subheadline.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                 .foregroundStyle(tint)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)

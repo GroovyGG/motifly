@@ -38,6 +38,7 @@ struct MotiflyApp: App {
                 Color(.systemBackground)
                     .ignoresSafeArea()
                 ContentView()
+                    .font(MotiflyTokens.TypeStyle.body)
             }
             .modelContainer(sharedModelContainer)
             .environment(\.modelContext, sharedModelContainer.mainContext)

@@ -106,10 +106,10 @@ struct DictationReviewView: View {
         } label: {
             HStack {
                 Text("Start Dictation")
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 Spacer()
                 Image(systemName: "play.fill")
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 12)
@@ -173,7 +173,7 @@ struct DictationReviewView: View {
                     .rotationEffect(.degrees(-90))
                     .frame(width: 58, height: 58)
                 Text(averageAccuracyText)
-                    .font(.subheadline.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                     .foregroundStyle(.blue)
             }
         }
@@ -184,17 +184,17 @@ struct DictationReviewView: View {
         VStack(spacing: 2) {
             if let icon {
                 Image(systemName: icon)
-                    .font(.subheadline)
+                    .font(MotiflyTokens.TypeStyle.rowPrimary)
                     .foregroundStyle(.blue)
             } else {
                 Spacer()
                     .frame(height: 0)
             }
             Text(value)
-                .font(.title3.weight(.medium))
+                .font(MotiflyTokens.TypeStyle.font(.title3, weight: .medium))
                 .foregroundStyle(.blue)
             Text("\(titleLine1) \(titleLine2)")
-                .font(.system(size: 10))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .medium))
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
@@ -204,7 +204,7 @@ struct DictationReviewView: View {
     private var previewHeader: some View {
         HStack {
             Text("Preview (\(words.count) items)")
-                .font(.subheadline.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
             Spacer()
             Menu {
                 ForEach(SortMode.allCases) { mode in
@@ -217,7 +217,7 @@ struct DictationReviewView: View {
                     Text("Sort")
                     Image(systemName: "line.3.horizontal.decrease")
                 }
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.blue)
             }
         }
@@ -226,7 +226,7 @@ struct DictationReviewView: View {
     private func previewRow(index: Int, word: VocabularyEntry) -> some View {
         HStack(spacing: 10) {
             Text("\(index)")
-                .font(.subheadline.weight(.medium))
+                .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .medium))
                 .foregroundStyle(.blue)
                 .frame(width: 30, height: 30)
                 .background(
@@ -236,13 +236,13 @@ struct DictationReviewView: View {
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(word.frenchLemma)
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     .lineLimit(1)
                 Text(word.english)
-                    .font(.caption2.weight(.medium))
+                    .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .medium))
                     .lineLimit(1)
                 Text(word.chineseExplanation ?? "—")
-                    .font(.system(size: 10))
+                    .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .medium))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -291,7 +291,7 @@ struct DictationReviewView: View {
     private func rowIconButton(systemName: String, isEnabled: Bool = true, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(isEnabled ? .blue : .gray)
                 .frame(width: 26, height: 26)
                 .background(
@@ -328,7 +328,7 @@ struct DictationReviewView: View {
         let percent = masteryPercent(for: word)
         VStack(alignment: .leading, spacing: 3) {
             Text(percent.map { "\($0)%" } ?? "—")
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.blue)
             Capsule()
                 .fill(Color.blue.opacity(0.18))
@@ -340,7 +340,7 @@ struct DictationReviewView: View {
                 }
             if let weakness = mainWeakness(for: word) {
                 Text(DictationErrorKind.weaknessDisplayName(forStored: weakness))
-                    .font(.system(size: 9).weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                     .foregroundStyle(.orange)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 1)
@@ -448,17 +448,17 @@ struct ErroredAttemptsSection: View {
             sectionHeading("Errored attempts")
             if let line = dictationCorrectSummary {
                 Text(line)
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("No dictation history for this word yet.")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.tertiary)
             }
             if groupedWrongAttempts.isEmpty {
                 Text("No spelling mistakes recorded yet.")
-                    .font(.caption)
+                    .font(MotiflyTokens.TypeStyle.caption)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(groupedWrongAttempts) { group in
@@ -471,7 +471,7 @@ struct ErroredAttemptsSection: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title)
-            .font(.caption2.weight(.semibold))
+            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -495,35 +495,35 @@ struct ErroredAttemptsSection: View {
 
         return HStack(alignment: .center, spacing: 10) {
             Image(systemName: "exclamationmark.circle.fill")
-                .font(.caption.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 .foregroundStyle(.orange.opacity(0.85))
                 .frame(width: 28, height: 28)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(display)
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text(errorLabel)
-                            .font(.caption2.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                             .foregroundStyle(group.kind == .none ? Color.secondary : Color.orange)
                             .multilineTextAlignment(.trailing)
                             .lineLimit(2)
                         Text("×\(group.count)")
-                            .font(.caption2.weight(.bold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .bold))
                             .foregroundStyle(group.count > 1 ? Color.orange.opacity(0.95) : Color.secondary)
                             .layoutPriority(1)
                     }
                 }
                 Text("Expected: \(expectedLemma)")
-                    .font(.caption2.weight(.medium))
+                    .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 Text(log.submittedAt, style: .relative)
-                    .font(.system(size: 10))
+                    .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .medium))
                     .foregroundStyle(.tertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

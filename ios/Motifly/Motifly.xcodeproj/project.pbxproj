@@ -51,6 +51,9 @@
 		BF2B /* WordMasteryHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2B /* WordMasteryHeader.swift */; };
 		BF2C /* ToolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2C /* ToolView.swift */; };
 		BF2D /* FrenchPronunciationToolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2D /* FrenchPronunciationToolView.swift */; };
+		BF2E /* MotiflyTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2E /* MotiflyTokens.swift */; };
+		BF2F /* MotiflyCardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2F /* MotiflyCardStyle.swift */; };
+		BF30 /* JosefinSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FR30 /* JosefinSans-Variable.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -99,6 +102,10 @@
 		FR2B /* WordMasteryHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMasteryHeader.swift; sourceTree = "<group>"; };
 		FR2C /* ToolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolView.swift; sourceTree = "<group>"; };
 		FR2D /* FrenchPronunciationToolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrenchPronunciationToolView.swift; sourceTree = "<group>"; };
+		FR2E /* MotiflyTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiflyTokens.swift; sourceTree = "<group>"; };
+		FR2F /* MotiflyCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotiflyCardStyle.swift; sourceTree = "<group>"; };
+		FR30 /* JosefinSans-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JosefinSans-Variable.ttf"; sourceTree = "<group>"; };
+		FR31 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,12 +132,32 @@
 			children = (
 				FR01 /* MotiflyApp.swift */,
 				FR02 /* ContentView.swift */,
+				FR31 /* Info.plist */,
 				G003 /* Models */,
 				G004 /* Services */,
+				G007 /* Design */,
+				G008 /* Fonts */,
 				G005 /* Views */,
 				G006 /* SeedData */,
 				FR0D /* Assets.xcassets */,
 			);
+			sourceTree = "<group>";
+		};
+		G008 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				FR30 /* JosefinSans-Variable.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		G007 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				FR2E /* MotiflyTokens.swift */,
+				FR2F /* MotiflyCardStyle.swift */,
+			);
+			path = Design;
 			sourceTree = "<group>";
 		};
 		G006 /* SeedData */ = {
@@ -276,6 +303,7 @@
 				BF19 /* seed_pronouns.csv in Resources */,
 				BF1B /* seed_prepositions.csv in Resources */,
 				BF0D /* Assets.xcassets in Resources */,
+				BF30 /* JosefinSans-Variable.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -322,6 +350,8 @@
 				BF2B /* WordMasteryHeader.swift in Sources */,
 				BF2C /* ToolView.swift in Sources */,
 				BF2D /* FrenchPronunciationToolView.swift in Sources */,
+				BF2E /* MotiflyTokens.swift in Sources */,
+				BF2F /* MotiflyCardStyle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -381,6 +411,7 @@
 				DEVELOPMENT_TEAM = 95BJE87QQD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Motifly;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Motifly records your pronunciation so you can play it back with Mine.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -411,6 +442,7 @@
 				DEVELOPMENT_TEAM = 95BJE87QQD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Motifly;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Motifly records your pronunciation so you can play it back with Mine.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

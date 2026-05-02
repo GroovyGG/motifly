@@ -22,7 +22,7 @@ struct DictationPastSessionSummaryView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         summaryHeaderCard(session: session)
                         Text("Attempts (mistakes first)")
-                            .font(.caption.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                             .foregroundStyle(.secondary)
 
                         LazyVStack(spacing: 12) {
@@ -61,19 +61,19 @@ struct DictationPastSessionSummaryView: View {
     private func summaryHeaderCard(session: DictationSession) -> some View {
         VStack(spacing: 8) {
             Text("Session summary")
-                .font(.title3.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.statValue)
                 .frame(maxWidth: .infinity)
             Text((session.endedAt ?? session.startedAt).formatted(date: .abbreviated, time: .shortened))
-                .font(.caption)
+                .font(MotiflyTokens.TypeStyle.caption)
                 .foregroundStyle(.tertiary)
                 .frame(maxWidth: .infinity)
             Text("Correct: \(session.correctCount)   Wrong: \(session.wrongCount)")
-                .font(.subheadline.weight(.medium))
+                .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .medium))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
             if !session.orderMode.isEmpty {
                 Text("Order: \(session.orderMode)")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.tertiary)
             }
         }
@@ -166,7 +166,7 @@ struct DictationSessionCompleteAttemptRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Text("\(displayIndex)")
-                .font(.subheadline.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                 .foregroundStyle(.blue)
                 .frame(width: 34, height: 34)
                 .background(
@@ -177,23 +177,23 @@ struct DictationSessionCompleteAttemptRow: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(attempt.expectedLemma)
-                        .font(.subheadline.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(2)
                     if attempt.isCorrect {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.subheadline.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                             .foregroundStyle(.green)
                     } else {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.subheadline.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                             .foregroundStyle(Color.orange.opacity(0.9))
                     }
                 }
 
                 if let gloss = glossaryWord, !gloss.english.isEmpty {
                     Text(gloss.english)
-                        .font(.caption2)
+                        .font(MotiflyTokens.TypeStyle.captionSecondary)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
@@ -201,10 +201,10 @@ struct DictationSessionCompleteAttemptRow: View {
                 if attempt.isCorrect {
                     HStack(spacing: 6) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.caption.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                             .foregroundStyle(.green)
                         Text("Matched the lemma.")
-                            .font(.caption.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                             .foregroundStyle(.green)
                     }
                     .padding(.top, 2)
@@ -249,10 +249,10 @@ struct DictationSessionCompleteAttemptRow: View {
     private func mistakeFeedbackBox(title: String, value: String, tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(tint.opacity(0.85))
             Text(value)
-                .font(.caption.weight(.medium))
+                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .medium))
                 .foregroundStyle(.primary)
                 .lineLimit(3)
         }
@@ -268,7 +268,7 @@ struct DictationSessionCompleteAttemptRow: View {
     private func summaryAudioCircleButton(systemName: String, isEnabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.caption.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 .foregroundStyle(isEnabled ? .blue : .gray)
                 .frame(width: 30, height: 30)
                 .background(

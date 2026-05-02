@@ -106,7 +106,7 @@ struct AdjectiveWordCardView: View {
 
     private func sectionHeading(_ title: String) -> some View {
         Text(title)
-            .font(.caption2.weight(.semibold))
+            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
             .foregroundStyle(.secondary)
     }
 
@@ -115,24 +115,24 @@ struct AdjectiveWordCardView: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(entry.frenchLemma)
-                        .font(.title.weight(.bold))
+                        .font(MotiflyTokens.TypeStyle.font(.title, weight: .bold))
                         .foregroundStyle(headwordColor)
                     HStack(alignment: .center, spacing: 8) {
                         Text("Adjective")
-                            .font(.caption2.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(Capsule().fill(Color(.tertiarySystemFill)))
                         if entry.adjInvariable == true {
                             Text("Invariable")
-                                .font(.caption2.weight(.semibold))
+                                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(Capsule().fill(Color(.tertiarySystemFill)))
                         }
                         if let t = entry.adjAdjectiveType, !t.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(t)
-                                .font(.caption2.weight(.semibold))
+                                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(Capsule().fill(Color(.tertiarySystemFill)))
@@ -194,7 +194,7 @@ struct AdjectiveWordCardView: View {
                         .fill(Color.red)
                         .frame(width: 8, height: 8)
                     Text("Recording…")
-                        .font(.caption2.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                         .foregroundStyle(.red)
                 }
             }
@@ -202,13 +202,13 @@ struct AdjectiveWordCardView: View {
             if mineCoordinator.awaitingSaveConfirmation {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Save this take as your Mine pronunciation?")
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                         .foregroundStyle(.secondary)
                     Button {
                         mineCoordinator.playPendingRecording()
                     } label: {
                         Label("Replay take", systemImage: "play.circle.fill")
-                            .font(.caption.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     }
                     .buttonStyle(.bordered)
                     .tint(.accentColor)
@@ -224,7 +224,7 @@ struct AdjectiveWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.borderedProminent)
 
                         Button("Discard", role: .cancel) {
@@ -238,7 +238,7 @@ struct AdjectiveWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.bordered)
                     }
                 }
@@ -275,10 +275,10 @@ struct AdjectiveWordCardView: View {
     private func translationPairRow(title: String, text: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.secondary)
             Text(text)
-                .font(.callout)
+                .font(MotiflyTokens.TypeStyle.callout)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -288,11 +288,11 @@ struct AdjectiveWordCardView: View {
             sectionHeading("Example sentence")
             if !entry.exampleFrench.isEmpty {
                 highlightedExampleFrench()
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
             }
             if !entry.exampleEnglish.isEmpty {
                 Text(entry.exampleEnglish)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .foregroundStyle(.secondary)
             }
         }
@@ -370,10 +370,10 @@ struct AdjectiveWordCardView: View {
         let text = display.isEmpty ? "—" : display
         return VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(tint.opacity(0.88))
             Text(text)
-                .font(.title3.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.statValue)
                 .foregroundStyle(display.isEmpty ? .secondary : tint)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -388,7 +388,7 @@ struct AdjectiveWordCardView: View {
     private func teachingNoteSection(note: String) -> some View {
         DisclosureGroup(isExpanded: $teachingNoteExpanded) {
             Text(note)
-                .font(.callout)
+                .font(MotiflyTokens.TypeStyle.callout)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 4)
@@ -408,17 +408,17 @@ struct AdjectiveWordCardView: View {
                     .overlay {
                         VStack(spacing: 6) {
                             Image(systemName: "photo")
-                                .font(.callout)
+                                .font(MotiflyTokens.TypeStyle.callout)
                                 .foregroundStyle(.secondary)
                             Text("Image")
-                                .font(.caption2)
+                                .font(MotiflyTokens.TypeStyle.captionSecondary)
                                 .foregroundStyle(.tertiary)
                         }
                     }
                     .accessibilityLabel("Memory image placeholder")
 
                 TextField("Add a memory hook…", text: $memoryNote, axis: .vertical)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .lineLimit(5...12)
                     .padding(10)
                     .frame(maxWidth: .infinity, minHeight: 88, alignment: .topLeading)
@@ -488,7 +488,7 @@ struct AdjectiveWordCardView: View {
 
     private static let headerAudioButtonSide: CGFloat = 24
     private static let headerAudioControlOuter: CGFloat = 36
-    private static let headerAudioIconFont = Font.callout
+    private static let headerAudioIconFont = MotiflyTokens.TypeStyle.callout
 }
 
 #Preview {

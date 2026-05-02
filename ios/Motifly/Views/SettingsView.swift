@@ -74,7 +74,7 @@ struct SettingsView: View {
                 Image(systemName: "sparkles")
                     .foregroundStyle(.blue)
                 Text("Goals help you stay consistent.\nYou can update them anytime.")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.secondary)
             }
             .padding(10)
@@ -84,7 +84,7 @@ struct SettingsView: View {
                     .fill(Color(.tertiarySystemGroupedBackground))
             )
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private func goalRow(
@@ -105,20 +105,20 @@ struct SettingsView: View {
                     .frame(width: 20)
                 VStack(alignment: .leading, spacing: 0) {
                     Text(title)
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                     Text(subtitle)
-                        .font(.system(size: 10))
+                        .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
                 HStack(spacing: 8) {
                     stepButton(systemName: "minus") { value.wrappedValue = max(range.lowerBound, value.wrappedValue - 1) }
                     Text(valueText)
-                        .font(.headline.weight(.medium))
+                        .font(MotiflyTokens.TypeStyle.font(.headline, weight: .medium))
                         .foregroundStyle(.blue)
                         .frame(minWidth: 30)
                     Text(unitText)
-                        .font(.caption2)
+                        .font(MotiflyTokens.TypeStyle.captionSecondary)
                         .foregroundStyle(.secondary)
                     stepButton(systemName: "plus") { value.wrappedValue = min(range.upperBound, value.wrappedValue + 1) }
                 }
@@ -130,7 +130,7 @@ struct SettingsView: View {
                 Spacer()
                 Text(maxText)
             }
-            .font(.caption2)
+            .font(MotiflyTokens.TypeStyle.captionSecondary)
             .foregroundStyle(.secondary)
         }
     }
@@ -138,7 +138,7 @@ struct SettingsView: View {
     private func stepButton(systemName: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.caption.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .frame(width: 26, height: 26)
                 .background(
@@ -169,14 +169,14 @@ struct SettingsView: View {
                                 themeColorName = item.name
                             }
                         Text(item.name)
-                            .font(.system(size: 10))
+                            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .medium))
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity)
                 }
             }
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private var reminderCard: some View {
@@ -195,17 +195,17 @@ struct SettingsView: View {
                     .labelsHidden()
                     .disabled(!remindersEnabled)
             }
-            .font(.caption2)
+            .font(MotiflyTokens.TypeStyle.captionSecondary)
 
             HStack {
                 Text("Reminder Days")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                 Spacer()
                 HStack(spacing: 4) {
                     ForEach(Array(zip(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], 2...8)), id: \.1) { item in
                         let selected = reminderDays.contains(item.1)
                         Text(item.0)
-                            .font(.caption2.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                             .foregroundStyle(selected ? .blue : .secondary)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 4)
@@ -221,7 +221,7 @@ struct SettingsView: View {
                 .disabled(!remindersEnabled)
             }
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private var preferencesCard: some View {
@@ -239,16 +239,16 @@ struct SettingsView: View {
                 isOn: $showChineseTranslation
             )
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private func toggleRow(title: String, subtitle: String, isOn: Binding<Bool>) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                 Text(subtitle)
-                    .font(.system(size: 10))
+                    .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .medium))
                     .foregroundStyle(.secondary)
             }
             Spacer()
@@ -264,53 +264,41 @@ struct SettingsView: View {
             } label: {
                 HStack {
                     Image(systemName: "info.circle")
-                        .font(.title3)
+                        .font(MotiflyTokens.TypeStyle.font(.title3))
                         .foregroundStyle(.blue)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("About")
-                            .font(.subheadline.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                         Text("App information and support")
-                            .font(.caption2)
+                            .font(MotiflyTokens.TypeStyle.captionSecondary)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                         .foregroundStyle(.tertiary)
                 }
                 .padding(.vertical, 4)
             }
             .buttonStyle(.plain)
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private func settingsHeader(icon: String, title: String, subtitle: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(MotiflyTokens.TypeStyle.font(.title3))
                 .foregroundStyle(.blue)
                 .frame(width: 24)
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 Text(subtitle)
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.secondary)
             }
         }
-    }
-}
-
-private extension View {
-    func cardStyle() -> some View {
-        self
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(.secondarySystemGroupedBackground))
-            )
     }
 }
 

@@ -50,7 +50,7 @@ struct HomeView: View {
                     SettingsView()
                 } label: {
                     Image(systemName: "gearshape")
-                        .font(.title3)
+                        .font(MotiflyTokens.TypeStyle.font(.title3))
                         .foregroundStyle(.blue)
                 }
                 .buttonStyle(.plain)
@@ -63,9 +63,9 @@ struct HomeView: View {
             ProgressView()
             VStack(alignment: .leading, spacing: 3) {
                 Text("Loading vocabulary")
-                    .font(.subheadline.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                 Text("First launch import is running in background.")
-                    .font(.caption)
+                    .font(MotiflyTokens.TypeStyle.caption)
                     .foregroundStyle(.secondary)
             }
         }
@@ -82,21 +82,21 @@ struct HomeView: View {
             Divider()
             statColumn(icon: "scope", value: "\(weeklyAccuracyPercent)%", unit: "avg accuracy", subtitle: "This week")
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private func statColumn(icon: String, value: String, unit: String, subtitle: String) -> some View {
         VStack(spacing: 2) {
             Image(systemName: icon)
-                .font(.subheadline)
+                .font(MotiflyTokens.TypeStyle.rowPrimary)
                 .foregroundStyle(.blue)
             Text(value)
-                .font(.title3.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.statValue)
             Text(unit)
-                .font(.caption)
+                .font(MotiflyTokens.TypeStyle.caption)
                 .foregroundStyle(.secondary)
             Text(subtitle)
-                .font(.caption2)
+                .font(MotiflyTokens.TypeStyle.captionSecondary)
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity)
@@ -107,10 +107,10 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("Study Log")
-                    .font(.headline)
+                    .font(MotiflyTokens.TypeStyle.sectionTitle)
                 Spacer()
                 Text("Last 6 Months")
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     .foregroundStyle(.blue)
             }
 
@@ -118,7 +118,7 @@ struct HomeView: View {
 
             HStack {
                 Text("Less")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.secondary)
                 ForEach(0..<5, id: \.self) { level in
                     RoundedRectangle(cornerRadius: 3)
@@ -126,15 +126,15 @@ struct HomeView: View {
                         .frame(width: 12, height: 8)
                 }
                 Text("More")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text("Daily study intensity")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.secondary)
             }
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private var heatmapView: some View {
@@ -143,7 +143,7 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(weekDayLabels, id: \.self) { label in
                     Text(label)
-                        .font(.caption2)
+                        .font(MotiflyTokens.TypeStyle.captionSecondary)
                         .foregroundStyle(.secondary)
                         .frame(height: 12)
                 }
@@ -168,24 +168,24 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("Group Progress")
-                    .font(.headline)
+                    .font(MotiflyTokens.TypeStyle.sectionTitle)
                 Spacer()
                 Text("Dictated")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.secondary)
                 Text("·")
                     .foregroundStyle(.secondary)
                 Text("Correct")
-                    .font(.caption2)
+                    .font(MotiflyTokens.TypeStyle.captionSecondary)
                     .foregroundStyle(.blue)
             }
             ForEach(groupProgressRows.prefix(5)) { row in
                 HStack(spacing: 8) {
                     Image(systemName: "square.stack.3d.up.fill")
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                         .foregroundStyle(.blue)
                     Text("Group \(row.groupNumber)")
-                        .font(.subheadline)
+                        .font(MotiflyTokens.TypeStyle.rowPrimary)
                         .frame(width: 62, alignment: .leading)
                     VStack(spacing: 5) {
                         ProgressView(value: Double(row.dictated), total: Double(max(1, row.planned)))
@@ -195,21 +195,21 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity)
                     Text("\(row.dictated)/\(row.planned)")
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                         .foregroundStyle(.secondary)
                     Text("\(row.correct)/\(row.planned)")
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                         .foregroundStyle(.primary)
                 }
             }
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private var vocabularyProgressCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Vocabulary Progress")
-                .font(.headline)
+                .font(MotiflyTokens.TypeStyle.sectionTitle)
             HStack(spacing: 12) {
                 ZStack {
                     Circle()
@@ -222,10 +222,10 @@ struct HomeView: View {
                         .frame(width: 74, height: 74)
                     VStack(spacing: 0) {
                         Text("\(Int(progressGoalRatio * 100))%")
-                            .font(.title3.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.statValue)
                             .foregroundStyle(.blue)
                         Text("of goal")
-                            .font(.caption2)
+                            .font(MotiflyTokens.TypeStyle.captionSecondary)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -234,22 +234,22 @@ struct HomeView: View {
                     metricLine(title: "Dictated", value: "\(dictatedWordsCount)/\(goalWordsCount)", ratio: dictatedWordsRatio)
                     metricLine(title: "Correct", value: "\(correctWordsCount)/\(goalWordsCount)", ratio: correctWordsRatio)
                     Text("Goal: \(goalWordsCount) words")
-                        .font(.caption2)
+                        .font(MotiflyTokens.TypeStyle.captionSecondary)
                         .foregroundStyle(.secondary)
                 }
             }
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private func metricLine(title: String, value: String, ratio: Double) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack {
                 Text(title)
-                    .font(.caption)
+                    .font(MotiflyTokens.TypeStyle.caption)
                 Spacer()
                 Text(value)
-                    .font(.caption)
+                    .font(MotiflyTokens.TypeStyle.caption)
                     .foregroundStyle(.secondary)
             }
             ProgressView(value: ratio)
@@ -264,20 +264,20 @@ struct HomeView: View {
                     .foregroundStyle(.blue)
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Weekly Goal")
-                        .font(.subheadline.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                     Text("Study \(Int(weeklyGoalHours)) hours this week")
-                        .font(.caption2)
+                        .font(MotiflyTokens.TypeStyle.captionSecondary)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
                 Text("\(String(format: "%.1f", weeklyHours)) / \(Int(weeklyGoalHours)) h")
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     .foregroundStyle(.blue)
             }
             ProgressView(value: weeklyHours, total: weeklyGoalHours)
                 .tint(.blue)
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private var dailyGoalCard: some View {
@@ -287,20 +287,20 @@ struct HomeView: View {
                     .foregroundStyle(.blue)
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Daily Goal")
-                        .font(.subheadline.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.subheadline, weight: .semibold))
                     Text("Study \(dailyGoalMinutes) minutes today")
-                        .font(.caption2)
+                        .font(MotiflyTokens.TypeStyle.captionSecondary)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
                 Text("\(String(format: "%.1f", todayHours)) / \(String(format: "%.1f", dailyGoalHours)) h")
-                    .font(.caption.weight(.semibold))
+                    .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     .foregroundStyle(.blue)
             }
             ProgressView(value: todayHours, total: dailyGoalHours)
                 .tint(.blue)
         }
-        .cardStyle()
+        .motiflyCardStyle()
     }
 
     private var debugTimelineLink: some View {
@@ -308,7 +308,7 @@ struct HomeView: View {
             DebugStudyTimelineView()
         } label: {
             Label("Debug Study Timeline", systemImage: "clock.arrow.circlepath")
-                .font(.caption.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                 .foregroundStyle(.secondary)
         }
         .buttonStyle(.plain)
@@ -481,18 +481,6 @@ struct HomeView: View {
 
     private var correctWordsRatio: Double {
         min(1, Double(correctWordsCount) / Double(goalWordsCount))
-    }
-}
-
-private extension View {
-    func cardStyle() -> some View {
-        self
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(.secondarySystemGroupedBackground))
-            )
     }
 }
 

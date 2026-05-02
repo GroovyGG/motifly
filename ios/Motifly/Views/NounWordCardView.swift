@@ -91,10 +91,10 @@ struct NounWordCardView: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(entry.frenchLemma)
-                        .font(.title.weight(.bold))
+                        .font(MotiflyTokens.TypeStyle.font(.title, weight: .bold))
                         .foregroundStyle(lemmaDisplayColor)
                     Text(posLabel)
-                        .font(.caption2.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(Capsule().fill(Color(.tertiarySystemFill)))
@@ -151,7 +151,7 @@ struct NounWordCardView: View {
                         .fill(Color.red)
                         .frame(width: 8, height: 8)
                     Text("Recording…")
-                        .font(.caption2.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                         .foregroundStyle(.red)
                 }
             }
@@ -159,13 +159,13 @@ struct NounWordCardView: View {
             if mineCoordinator.awaitingSaveConfirmation {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Save this take as your Mine pronunciation?")
-                        .font(.caption)
+                        .font(MotiflyTokens.TypeStyle.caption)
                         .foregroundStyle(.secondary)
                     Button {
                         mineCoordinator.playPendingRecording()
                     } label: {
                         Label("Replay take", systemImage: "play.circle.fill")
-                            .font(.caption.weight(.semibold))
+                            .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                     }
                     .buttonStyle(.bordered)
                     .tint(.accentColor)
@@ -181,7 +181,7 @@ struct NounWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.borderedProminent)
 
                         Button("Discard", role: .cancel) {
@@ -195,7 +195,7 @@ struct NounWordCardView: View {
                                 ]
                             )
                         }
-                        .font(.caption.weight(.semibold))
+                        .font(MotiflyTokens.TypeStyle.font(.caption, weight: .semibold))
                         .buttonStyle(.bordered)
                     }
                 }
@@ -240,10 +240,10 @@ struct NounWordCardView: View {
     private func translationPairRow(title: String, text: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.secondary)
             Text(text)
-                .font(.callout)
+                .font(MotiflyTokens.TypeStyle.callout)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -256,7 +256,7 @@ struct NounWordCardView: View {
     /// Matches the gray label style used for “English”, “中文”, and section headings.
     private func sectionHeading(_ title: String) -> some View {
         Text(title)
-            .font(.caption2.weight(.semibold))
+            .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
             .foregroundStyle(.secondary)
     }
 
@@ -265,11 +265,11 @@ struct NounWordCardView: View {
             sectionHeading("Example sentence")
             if !entry.exampleFrench.isEmpty {
                 highlightedExample(french: entry.exampleFrench, lemma: entry.frenchLemma, color: lemmaDisplayColor)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
             }
             if !entry.exampleEnglish.isEmpty {
                 Text(entry.exampleEnglish)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .foregroundStyle(.secondary)
             }
         }
@@ -297,18 +297,18 @@ struct NounWordCardView: View {
     private var articleCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Article")
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.secondary)
             if let art = entry.lemmaArticle, !art.isEmpty {
                 Text("\(art) \(entry.frenchLemma)")
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                 if let indef = indefiniteSingularLine() {
                     Text(indef)
-                        .font(.callout)
+                        .font(MotiflyTokens.TypeStyle.callout)
                 }
             } else {
                 Text("—")
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .foregroundStyle(.secondary)
             }
         }
@@ -323,19 +323,19 @@ struct NounWordCardView: View {
     private var pluralCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Plural")
-                .font(.caption2.weight(.semibold))
+                .font(MotiflyTokens.TypeStyle.font(.caption2, weight: .semibold))
                 .foregroundStyle(.secondary)
             if let pl = entry.pluralForm, !pl.isEmpty {
                 Text(pluralWithDefiniteArticle(pl))
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                 if let pt = entry.pluralType, !pt.isEmpty {
                     Text(pt)
-                        .font(.caption2)
+                        .font(MotiflyTokens.TypeStyle.captionSecondary)
                         .foregroundStyle(.secondary)
                 }
             } else {
                 Text("—")
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .foregroundStyle(.secondary)
             }
         }
@@ -375,17 +375,17 @@ struct NounWordCardView: View {
                     .overlay {
                         VStack(spacing: 6) {
                             Image(systemName: "photo")
-                                .font(.callout)
+                                .font(MotiflyTokens.TypeStyle.callout)
                                 .foregroundStyle(.secondary)
                             Text("Image")
-                                .font(.caption2)
+                                .font(MotiflyTokens.TypeStyle.captionSecondary)
                                 .foregroundStyle(.tertiary)
                         }
                     }
                     .accessibilityLabel("Memory image placeholder")
 
                 TextField("Add a memory hook…", text: $memoryNote, axis: .vertical)
-                    .font(.callout)
+                    .font(MotiflyTokens.TypeStyle.callout)
                     .lineLimit(5...12)
                     .padding(10)
                     .frame(maxWidth: .infinity, minHeight: 88, alignment: .topLeading)
@@ -467,7 +467,7 @@ struct NounWordCardView: View {
     private static let headerAudioButtonSide: CGFloat = 24
     /// Outer layout box for bordered circular buttons around `headerAudioButtonSide`.
     private static let headerAudioControlOuter: CGFloat = 36
-    private static let headerAudioIconFont = Font.callout
+    private static let headerAudioIconFont = MotiflyTokens.TypeStyle.callout
 
     static func lemmaColor(genderCode: String, pos: String) -> Color {
         let g = genderCode.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
