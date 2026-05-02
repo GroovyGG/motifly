@@ -388,33 +388,81 @@ struct DictationReviewView: View {
 
 // MARK: - Shared: errored attempts on vocab cards
 
-/// Vocabulary card section: recent wrong dictation attempts for this lemma, one row per attempt.
-/// Error subtype is derived with `DictationErrorClassifier` from stored input (not only `errorType`)
-/// so legacy `other` rows still show the current spelling/listening label when possible.
+/// Vocabulary card section: wrong dictation attempts for this lemma, grouped by classifier + normalized input.
+/// Same mistake appears once with a trailing count; groups sorted by frequency (then recency).
 struct ErroredAttemptsSection: View {
     let expectedLemma: String
     let wrongAttempts: [DictationAttemptLog]
 
-    private static let displayLimit = 20
+    @Query private var stats: [DictationWordStats]
 
-    /// Newest first so the latest mistake is on top.
-    private var recentAttempts: [DictationAttemptLog] {
-        wrongAttempts
-            .sorted { $0.submittedAt > $1.submittedAt }
-            .prefix(Self.displayLimit)
+    init(seedNumber: Int, expectedLemma: String, wrongAttempts: [DictationAttemptLog]) {
+        self.expectedLemma = expectedLemma
+        self.wrongAttempts = wrongAttempts
+        let sid = seedNumber
+        _stats = Query(filter: #Predicate<DictationWordStats> { $0.seedNumber == sid })
+    }
+
+    private static let maxGroupedRows = 20
+
+    private var wordStats: DictationWordStats? { stats.first }
+
+    private var groupedWrongAttempts: [ErroredAttemptGroup] {
+        var buckets: [String: [DictationAttemptLog]] = [:]
+        for log in wrongAttempts {
+            let key = groupIdentityKey(for: log)
+            buckets[key, default: []].append(log)
+        }
+        return buckets
+            .map { key, logs -> ErroredAttemptGroup in
+                let rep = logs.max(by: { $0.submittedAt < $1.submittedAt })!
+                return ErroredAttemptGroup(
+                    id: key,
+                    count: logs.count,
+                    representative: rep,
+                    kind: displayErrorKind(for: rep)
+                )
+            }
+            .sorted { a, b in
+                if a.count != b.count { return a.count > b.count }
+                return a.representative.submittedAt > b.representative.submittedAt
+            }
+            .prefix(Self.maxGroupedRows)
             .map { $0 }
+    }
+
+    private func groupIdentityKey(for log: DictationAttemptLog) -> String {
+        let kind = displayErrorKind(for: log)
+        let norm = DictationNormalization.normalize(log.userInput)
+        return "\(kind.rawValue)|\(norm)"
+    }
+
+    private var dictationCorrectSummary: String? {
+        guard let s = wordStats, s.attemptCount > 0 else { return nil }
+        let pct = Int((Double(s.correctCount) / Double(s.attemptCount) * 100.0).rounded())
+        return "Lemma match: \(s.correctCount) correct / \(s.attemptCount) attempts (\(pct)%)."
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeading("Errored attempts")
-            if recentAttempts.isEmpty {
+            if let line = dictationCorrectSummary {
+                Text(line)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("No dictation history for this word yet.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            if groupedWrongAttempts.isEmpty {
                 Text("No spelling mistakes recorded yet.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(recentAttempts, id: \.id) { log in
-                    attemptRow(log)
+                ForEach(groupedWrongAttempts) { group in
+                    attemptRowGroup(group)
                 }
             }
         }
@@ -439,11 +487,11 @@ struct ErroredAttemptsSection: View {
         )
     }
 
-    private func attemptRow(_ log: DictationAttemptLog) -> some View {
+    private func attemptRowGroup(_ group: ErroredAttemptGroup) -> some View {
+        let log = group.representative
         let trimmed = log.userInput.trimmingCharacters(in: .whitespacesAndNewlines)
         let display = trimmed.isEmpty ? "—" : trimmed
-        let kind = displayErrorKind(for: log)
-        let errorLabel = DictationErrorKind.weaknessDisplayName(forStored: kind.rawValue)
+        let errorLabel = DictationErrorKind.weaknessDisplayName(forStored: group.kind.rawValue)
 
         return HStack(alignment: .center, spacing: 10) {
             Image(systemName: "exclamationmark.circle.fill")
@@ -458,12 +506,17 @@ struct ErroredAttemptsSection: View {
                         .foregroundStyle(.primary)
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(errorLabel)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(kind == .none ? Color.secondary : Color.orange)
-                        .multilineTextAlignment(.trailing)
-                        .lineLimit(2)
-                        .layoutPriority(1)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(errorLabel)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(group.kind == .none ? Color.secondary : Color.orange)
+                            .multilineTextAlignment(.trailing)
+                            .lineLimit(2)
+                        Text("×\(group.count)")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(group.count > 1 ? Color.orange.opacity(0.95) : Color.secondary)
+                            .layoutPriority(1)
+                    }
                 }
                 Text("Expected: \(expectedLemma)")
                     .font(.caption2.weight(.medium))
@@ -481,6 +534,13 @@ struct ErroredAttemptsSection: View {
                 .fill(Color(.secondarySystemGroupedBackground))
         )
     }
+}
+
+private struct ErroredAttemptGroup: Identifiable {
+    let id: String
+    let count: Int
+    let representative: DictationAttemptLog
+    let kind: DictationErrorKind
 }
 
 #Preview {

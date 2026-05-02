@@ -1,12 +1,19 @@
 import SwiftData
 import SwiftUI
 
+/// Whether this run covers the whole unit or only words missed in the latest completed session.
+enum DictationSessionSubset: String, Equatable {
+    case fullGroup
+    case lastWrongReview
+}
+
 struct DictationSessionView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var dictationProgress: DictationProgressStore
 
     let unitIndex: Int
     let words: [VocabularyEntry]
+    var sessionSubset: DictationSessionSubset = .fullGroup
 
     @State private var orderMode: DictationOrderMode = .random
     @State private var orderedUnitWords: [VocabularyEntry] = []
@@ -30,6 +37,7 @@ struct DictationSessionView: View {
     /// Snapshotted logs for the summary UI (filled before `finishCurrentSession` clears `currentSessionId`).
     @State private var completedSessionAttempts: [DictationAttemptLog] = []
     @State private var showTranslationHint = false
+    @State private var showEmptyAnswerConfirmation = false
 
     private let frenchCharacterRows: [[String]] = [
         ["à", "â", "æ", "ç", "é", "è", "ê", "ë"],
@@ -43,6 +51,10 @@ struct DictationSessionView: View {
     private var current: VocabularyEntry? {
         guard currentIndex < activeWords.count else { return nil }
         return activeWords[currentIndex]
+    }
+
+    private var isUserInputTrimmedEmpty: Bool {
+        userInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var body: some View {
@@ -65,7 +77,7 @@ struct DictationSessionView: View {
             .padding(16)
         }
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
-        .navigationTitle("Dictation")
+        .navigationTitle(sessionSubset == .lastWrongReview ? "Wrong words" : "Dictation")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             refreshOrderedWords()
@@ -84,12 +96,14 @@ struct DictationSessionView: View {
                 } else {
                     completedSessionAttempts = []
                 }
-                dictationProgress.completeSession(
-                    unitIndex: unitIndex,
-                    correct: correct,
-                    total: total,
-                    modelContext: modelContext
-                )
+                if sessionSubset == .fullGroup {
+                    dictationProgress.completeSession(
+                        unitIndex: unitIndex,
+                        correct: correct,
+                        total: total,
+                        modelContext: modelContext
+                    )
+                }
                 finishCurrentSession(status: "completed")
             }
         }
@@ -131,6 +145,14 @@ struct DictationSessionView: View {
                 dictationProgress.abandonSession(unitIndex: unitIndex, modelContext: modelContext)
                 finishCurrentSession(status: "abandoned")
             }
+        }
+        .alert("Skip this word?", isPresented: $showEmptyAnswerConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Skip") {
+                submitStep()
+            }
+        } message: {
+            Text("The answer field is empty. Skipping counts as an incorrect attempt for this word.")
         }
     }
 
@@ -429,7 +451,7 @@ struct DictationSessionView: View {
 
     private var nextWordSection: some View {
         Button {
-            submitStep()
+            presentSubmitOrConfirmIfEmpty()
         } label: {
             HStack {
                 Text("Next Word")
@@ -475,12 +497,12 @@ struct DictationSessionView: View {
                     .fill(Color(.secondarySystemGroupedBackground))
             )
 
-            Text("Attempts (play order)")
+            Text("Attempts (mistakes first)")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
 
             LazyVStack(spacing: 12) {
-                ForEach(Array(completedSessionAttempts.enumerated()), id: \.element.id) { offset, attempt in
+                ForEach(Array(completedSessionAttempts.orderedForDictationSessionSummary().enumerated()), id: \.element.id) { offset, attempt in
                     DictationSessionCompleteAttemptRow(
                         displayIndex: offset + 1,
                         attempt: attempt,
@@ -521,6 +543,16 @@ struct DictationSessionView: View {
     private func mineRecordingAvailableForSummary(for attempt: DictationAttemptLog) -> Bool {
         guard let entry = words.first(where: { $0.seedNumber == attempt.seedNumber }) else { return false }
         return hasMineRecording(for: entry)
+    }
+
+    /// Manual mode: require confirmation before submitting a blank answer as a skip.
+    private func presentSubmitOrConfirmIfEmpty() {
+        guard current != nil else { return }
+        if isUserInputTrimmedEmpty {
+            showEmptyAnswerConfirmation = true
+        } else {
+            submitStep()
+        }
     }
 
     private func submitStep() {
@@ -607,7 +639,8 @@ struct DictationSessionView: View {
                 "unit": String(unitIndex + 1),
                 "orderMode": orderMode.rawValue,
                 "autoMode": isAutoMode ? "true" : "false",
-                "plannedCount": String(activeWords.count)
+                "plannedCount": String(activeWords.count),
+                "sessionSubset": sessionSubset.rawValue
             ]
         )
     }
@@ -706,7 +739,13 @@ struct DictationSessionView: View {
         }
         guard !Task.isCancelled else { return }
         if isAutoMode && isAutoPlaybackStarted && !isUserReplay && isSessionActive && !sessionDone {
-            submitStep()
+            await MainActor.run {
+                if isUserInputTrimmedEmpty {
+                    showEmptyAnswerConfirmation = true
+                } else {
+                    submitStep()
+                }
+            }
         }
     }
 
@@ -817,7 +856,8 @@ struct DictationSessionView: View {
                 "status": status,
                 "attempted": String(correct + wrong),
                 "correct": String(correct),
-                "wrong": String(wrong)
+                "wrong": String(wrong),
+                "sessionSubset": sessionSubset.rawValue
             ]
         )
         currentSessionId = nil
@@ -858,10 +898,7 @@ private extension Array where Element == DictationPlaybackTraceEvent {
         configurations: config
     )
     NavigationStack {
-        DictationSessionView(
-            unitIndex: 0,
-            words: []
-        )
+        DictationSessionView(unitIndex: 0, words: [], sessionSubset: .fullGroup)
     }
     .modelContainer(container)
     .environmentObject(DictationProgressStore())

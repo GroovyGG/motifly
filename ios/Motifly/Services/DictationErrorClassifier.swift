@@ -2,12 +2,13 @@ import Foundation
 
 /// Stored on `DictationAttemptLog.errorType` (raw string).
 ///
-/// **Weakness is spelling-only** (five subtypes). `listening` / `other` are kept on the log
+/// **Weakness is spelling-only** (six subtypes). `listening` / `other` are kept on the log
 /// for analytics but do not increment spelling subtype counters on `DictationWordStats`.
 enum DictationErrorKind: String {
     case none
     case spelling_extra
     case spelling_missing
+    case spelling_accent
     case spelling_vowel
     case spelling_consonant
     case spelling_mixed
@@ -34,6 +35,7 @@ enum DictationErrorKind: String {
             case .none: return "—"
             case .spelling_extra: return "Extra letter"
             case .spelling_missing: return "Missing letter"
+            case .spelling_accent: return "Missing accent"
             case .spelling_vowel: return "Vowel spelling"
             case .spelling_consonant: return "Consonant spelling"
             case .spelling_mixed: return "Mixed spelling"
@@ -87,17 +89,13 @@ enum DictationErrorClassifier {
         )
     }
 
-    // MARK: - Diacritic-only (formerly “accent”; now a spelling subtype)
+    // MARK: - Diacritic-only (plain letter vs è/é/ê/ë etc.; not vowel/consonant “letter” confusion)
 
     private static func classifyDiacriticOnly(normUser: String, normExpected: String) -> DictationErrorKind {
         let u = Array(normUser)
         let e = Array(normExpected)
         guard u.count == e.count else { return .spelling_mixed }
-        for i in 0..<u.count where u[i] != e[i] {
-            let au = stripDiacritics(String(u[i])).lowercased()
-            if isVowelLetter(au) { return .spelling_vowel }
-        }
-        return .spelling_consonant
+        return .spelling_accent
     }
 
     // MARK: - Spelling band

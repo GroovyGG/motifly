@@ -21,12 +21,12 @@ struct DictationPastSessionSummaryView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
                         summaryHeaderCard(session: session)
-                        Text("Attempts (play order)")
+                        Text("Attempts (mistakes first)")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
 
                         LazyVStack(spacing: 12) {
-                            ForEach(Array(attempts.enumerated()), id: \.element.id) { offset, attempt in
+                            ForEach(Array(attempts.orderedForDictationSessionSummary().enumerated()), id: \.element.id) { offset, attempt in
                                 DictationSessionCompleteAttemptRow(
                                     displayIndex: offset + 1,
                                     attempt: attempt,
@@ -288,5 +288,18 @@ struct DictationSessionCompleteAttemptRow: View {
             return "Word \(displayIndex): \(attempt.expectedLemma), \(result)."
         }
         return "Word \(displayIndex): expected \(attempt.expectedLemma), mistaken \(typedDisplay), \(result)."
+    }
+}
+
+// MARK: - Session summary ordering (live + past “Last summary”)
+
+extension Array where Element == DictationAttemptLog {
+    /// Incorrect attempts first (`promptIndex`, then `submittedAt`), then correct — same order as end-of-session summary.
+    func orderedForDictationSessionSummary() -> [DictationAttemptLog] {
+        func byPromptOrder(_ a: DictationAttemptLog, _ b: DictationAttemptLog) -> Bool {
+            if a.promptIndex != b.promptIndex { return a.promptIndex < b.promptIndex }
+            return a.submittedAt < b.submittedAt
+        }
+        return filter { !$0.isCorrect }.sorted(by: byPromptOrder) + filter(\.isCorrect).sorted(by: byPromptOrder)
     }
 }

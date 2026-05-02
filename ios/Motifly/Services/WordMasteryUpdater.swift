@@ -101,6 +101,9 @@ enum WordMasteryUpdater {
         case .spelling_missing:
             stats.spellingMissingCount += 1
             stats.spellingErrorCount += 1
+        case .spelling_accent:
+            stats.spellingAccentCount += 1
+            stats.spellingErrorCount += 1
         case .spelling_vowel:
             stats.spellingVowelCount += 1
             stats.spellingErrorCount += 1
@@ -121,6 +124,7 @@ enum WordMasteryUpdater {
         let buckets: [(String, Int)] = [
             (DictationErrorKind.spelling_extra.rawValue, stats.spellingExtraCount),
             (DictationErrorKind.spelling_missing.rawValue, stats.spellingMissingCount),
+            (DictationErrorKind.spelling_accent.rawValue, stats.spellingAccentCount),
             (DictationErrorKind.spelling_vowel.rawValue, stats.spellingVowelCount),
             (DictationErrorKind.spelling_consonant.rawValue, stats.spellingConsonantCount),
             (DictationErrorKind.spelling_mixed.rawValue, stats.spellingMixedCount)

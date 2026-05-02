@@ -165,7 +165,7 @@ struct AdjectiveWordCardView: View {
                     }
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.circle)
-                    .tint(.accentColor)
+                    .tint(mineCoordinator.minePlaybackTint)
                     .disabled(!mineCoordinator.hasMineRecording)
                     .accessibilityLabel("Mine")
                     .frame(width: Self.headerAudioControlOuter, height: Self.headerAudioControlOuter)
@@ -173,15 +173,15 @@ struct AdjectiveWordCardView: View {
                     Button {
                         Task { await mineCoordinator.toggleRecording() }
                     } label: {
-                        Image(systemName: mineCoordinator.isRecording ? "stop.circle.fill" : "record.circle")
+                        Image(systemName: mineCoordinator.recordControlSymbolName)
                             .font(Self.headerAudioIconFont)
                             .symbolRenderingMode(.monochrome)
                             .frame(width: Self.headerAudioButtonSide, height: Self.headerAudioButtonSide)
                     }
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.circle)
-                    .tint(mineCoordinator.isRecording ? .red : .accentColor)
-                    .accessibilityLabel(mineCoordinator.isRecording ? "Stop recording" : "Record my pronunciation")
+                    .tint(mineCoordinator.recordControlTint)
+                    .accessibilityLabel(mineCoordinator.recordControlAccessibilityLabel)
                     .frame(width: Self.headerAudioControlOuter, height: Self.headerAudioControlOuter)
                 }
                 .layoutPriority(1)
@@ -451,7 +451,7 @@ struct AdjectiveWordCardView: View {
     }
 
     private var erroredAttemptsPlaceholder: some View {
-        ErroredAttemptsSection(expectedLemma: entry.frenchLemma, wrongAttempts: wrongAttemptLogs)
+        ErroredAttemptsSection(seedNumber: entry.seedNumber, expectedLemma: entry.frenchLemma, wrongAttempts: wrongAttemptLogs)
     }
 
     private func prepareAudioSessionForFrenchTTS() {
