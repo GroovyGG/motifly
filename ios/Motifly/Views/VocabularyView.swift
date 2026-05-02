@@ -96,6 +96,13 @@ struct VocabularyView: View {
             }
         }
         .searchable(text: $searchText, prompt: "Lemma, English, POS (pro, det), or kind")
+        .textInputAutocapitalization(.never)
+        .onChange(of: searchText) { _, newValue in
+            let lowered = newValue.lowercased()
+            if lowered != newValue {
+                searchText = lowered
+            }
+        }
         .navigationTitle("Vocabulary")
     }
 

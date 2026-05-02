@@ -1,12 +1,19 @@
 import SwiftData
 import SwiftUI
 
+/// Whether this run covers the whole unit or only words missed in the latest completed session.
+enum DictationSessionSubset: String, Equatable {
+    case fullGroup
+    case lastWrongReview
+}
+
 struct DictationSessionView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var dictationProgress: DictationProgressStore
 
     let unitIndex: Int
     let words: [VocabularyEntry]
+    var sessionSubset: DictationSessionSubset = .fullGroup
 
     @State private var orderMode: DictationOrderMode = .random
     @State private var orderedUnitWords: [VocabularyEntry] = []
@@ -70,7 +77,7 @@ struct DictationSessionView: View {
             .padding(16)
         }
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
-        .navigationTitle("Dictation")
+        .navigationTitle(sessionSubset == .lastWrongReview ? "Wrong words" : "Dictation")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             refreshOrderedWords()
@@ -89,12 +96,14 @@ struct DictationSessionView: View {
                 } else {
                     completedSessionAttempts = []
                 }
-                dictationProgress.completeSession(
-                    unitIndex: unitIndex,
-                    correct: correct,
-                    total: total,
-                    modelContext: modelContext
-                )
+                if sessionSubset == .fullGroup {
+                    dictationProgress.completeSession(
+                        unitIndex: unitIndex,
+                        correct: correct,
+                        total: total,
+                        modelContext: modelContext
+                    )
+                }
                 finishCurrentSession(status: "completed")
             }
         }
@@ -630,7 +639,8 @@ struct DictationSessionView: View {
                 "unit": String(unitIndex + 1),
                 "orderMode": orderMode.rawValue,
                 "autoMode": isAutoMode ? "true" : "false",
-                "plannedCount": String(activeWords.count)
+                "plannedCount": String(activeWords.count),
+                "sessionSubset": sessionSubset.rawValue
             ]
         )
     }
@@ -846,7 +856,8 @@ struct DictationSessionView: View {
                 "status": status,
                 "attempted": String(correct + wrong),
                 "correct": String(correct),
-                "wrong": String(wrong)
+                "wrong": String(wrong),
+                "sessionSubset": sessionSubset.rawValue
             ]
         )
         currentSessionId = nil
@@ -887,10 +898,7 @@ private extension Array where Element == DictationPlaybackTraceEvent {
         configurations: config
     )
     NavigationStack {
-        DictationSessionView(
-            unitIndex: 0,
-            words: []
-        )
+        DictationSessionView(unitIndex: 0, words: [], sessionSubset: .fullGroup)
     }
     .modelContainer(container)
     .environmentObject(DictationProgressStore())
