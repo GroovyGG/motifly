@@ -29,6 +29,7 @@ struct DictationSessionView: View {
     @State private var playbackTask: Task<Void, Never>?
     /// Snapshotted logs for the summary UI (filled before `finishCurrentSession` clears `currentSessionId`).
     @State private var completedSessionAttempts: [DictationAttemptLog] = []
+    @State private var showTranslationHint = false
 
     private let frenchCharacterRows: [[String]] = [
         ["à", "â", "æ", "ç", "é", "è", "ê", "ë"],
@@ -93,6 +94,7 @@ struct DictationSessionView: View {
             }
         }
         .onChange(of: currentIndex) { _, _ in
+            showTranslationHint = false
             promptShownAt = .now
             resetPromptPlaybackState()
             if isAutoMode && isAutoPlaybackStarted {
@@ -319,6 +321,25 @@ struct DictationSessionView: View {
         .disabled(!hasMineRecording(for: word))
     }
 
+    private var translationHintButton: some View {
+        Button {
+            showTranslationHint.toggle()
+        } label: {
+            Image(systemName: "lightbulb.fill")
+                .font(.title3)
+                .foregroundStyle(showTranslationHint ? .white : .blue)
+                .frame(width: 42, height: 42)
+                .background(
+                    Circle()
+                        .fill(showTranslationHint ? Color.blue : Color.blue.opacity(0.12))
+                )
+        }
+        .buttonStyle(.plain)
+        .disabled(current == nil)
+        .opacity(current == nil ? 0.4 : 1)
+        .accessibilityLabel(showTranslationHint ? "Hide translation hint" : "Show English and Chinese translation")
+    }
+
     private var promptCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center, spacing: 12) {
@@ -338,13 +359,38 @@ struct DictationSessionView: View {
                     manualMinePlaybackButton(for: word)
                 }
 
-                Spacer()
+                Spacer(minLength: 8)
+
+                translationHintButton
             }
 
             TextField("Enter French text", text: $userInput)
                 .textFieldStyle(.roundedBorder)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
+
+            if showTranslationHint, let word = current {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(word.english)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                    if let zh = word.chineseExplanation, !zh.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text(zh)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.blue.opacity(0.08))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.blue.opacity(0.18), lineWidth: 1)
+                )
+            }
 
             if let ok = lastWasCorrect, showResultHint {
                 Text(ok ? "Correct" : "Incorrect")
@@ -520,6 +566,7 @@ struct DictationSessionView: View {
         isSessionActive = false
         isAutoPlaybackStarted = false
         showResultHint = false
+        showTranslationHint = false
         promptShownAt = .now
         resetPromptPlaybackState()
     }
@@ -572,6 +619,12 @@ struct DictationSessionView: View {
         let normalizedExpected = DictationNormalization.normalize(word.frenchLemma)
         let normalizedInput = DictationNormalization.normalize(userInput)
         let traceJSON = promptTraceEvents.toJSON()
+        let errorKind = DictationErrorClassifier.classify(
+            userInput: userInput,
+            expectedLemma: word.frenchLemma,
+            replayCount: promptReplayCount,
+            isCorrect: isCorrect
+        )
         let attempt = DictationAttemptLog(
             sessionId: sessionId,
             seedNumber: word.seedNumber,
@@ -586,14 +639,17 @@ struct DictationSessionView: View {
             elapsedMs: elapsedMs,
             replayCount: promptReplayCount,
             playTraceJSON: traceJSON,
-            errorType: isCorrect ? nil : "other"
+            errorType: isCorrect ? nil : errorKind.rawValue,
+            usedHint: showTranslationHint
         )
         modelContext.insert(attempt)
-        upsertWordStats(seedNumber: word.seedNumber, isCorrect: isCorrect, at: now)
+        let stats = upsertWordStats(seedNumber: word.seedNumber, isCorrect: isCorrect, at: now)
+        applyMasteryUpdate(stats: stats, attempt: attempt, errorKind: errorKind, at: now)
         try? modelContext.save()
     }
 
-    private func upsertWordStats(seedNumber: Int, isCorrect: Bool, at now: Date) {
+    @discardableResult
+    private func upsertWordStats(seedNumber: Int, isCorrect: Bool, at now: Date) -> DictationWordStats {
         let fd = FetchDescriptor<DictationWordStats>(
             predicate: #Predicate<DictationWordStats> { $0.seedNumber == seedNumber }
         )
@@ -613,6 +669,30 @@ struct DictationSessionView: View {
             stats.wrongCount += 1
             stats.lastWrongAt = now
         }
+        return stats
+    }
+
+    /// Pull the recent attempts for this word and let `WordMasteryUpdater` recompute mastery.
+    private func applyMasteryUpdate(
+        stats: DictationWordStats,
+        attempt: DictationAttemptLog,
+        errorKind: DictationErrorKind,
+        at now: Date
+    ) {
+        let seedNumber = stats.seedNumber
+        var recentFD = FetchDescriptor<DictationAttemptLog>(
+            predicate: #Predicate<DictationAttemptLog> { $0.seedNumber == seedNumber },
+            sortBy: [SortDescriptor(\.submittedAt, order: .forward)]
+        )
+        recentFD.fetchLimit = WordMasteryUpdater.recentWindow * 2
+        let logs = (try? modelContext.fetch(recentFD)) ?? [attempt]
+        WordMasteryUpdater.applyAttempt(
+            stats: stats,
+            attempt: attempt,
+            errorKind: errorKind,
+            recentLogs: logs,
+            now: now
+        )
     }
 
     private func playCurrentPrompt(isUserReplay: Bool) async {

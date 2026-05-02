@@ -517,28 +517,9 @@ struct AdverbWordCardView: View {
     private var progressPlaceholder: some View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeading("Progress")
-            HStack(spacing: 12) {
-                metricChip(title: "Accuracy", value: "—")
-                metricChip(title: "Attempts", value: "—")
-            }
+            WordMasteryHeader(seedNumber: entry.seedNumber)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func metricChip(title: String, value: String) -> some View {
-        VStack(spacing: 6) {
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.callout.weight(.bold))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.tertiarySystemGroupedBackground))
-        )
     }
 
     private var erroredAttemptsPlaceholder: some View {

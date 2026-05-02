@@ -50,6 +50,7 @@ enum DictationWordOrdering {
         modelContext: ModelContext
     ) -> [VocabularyEntry] {
         // Prefer incremental stats table for speed; fallback to full logs if unavailable.
+        var masteryBySeed: [Int: Double] = [:]
         var attemptsBySeed: [Int: Int] = [:]
         var wrongBySeed: [Int: Int] = [:]
         var lastWrongAtBySeed: [Int: Date] = [:]
@@ -58,6 +59,9 @@ enum DictationWordOrdering {
         let stats = (try? modelContext.fetch(statsFD)) ?? []
         if !stats.isEmpty {
             for s in stats {
+                if let m = s.overallMastery {
+                    masteryBySeed[s.seedNumber] = m
+                }
                 attemptsBySeed[s.seedNumber] = s.attemptCount
                 wrongBySeed[s.seedNumber] = s.wrongCount
                 if let t = s.lastWrongAt {
@@ -80,6 +84,12 @@ enum DictationWordOrdering {
         }
 
         return words.sorted { lhs, rhs in
+            // V1 memory model: weakest mastery first. Untracked words sort after touched ones
+            // so the user keeps hitting words they have actually struggled with.
+            let lMastery = masteryBySeed[lhs.seedNumber] ?? 101
+            let rMastery = masteryBySeed[rhs.seedNumber] ?? 101
+            if lMastery != rMastery { return lMastery < rMastery }
+
             let lWrong = wrongBySeed[lhs.seedNumber, default: 0]
             let rWrong = wrongBySeed[rhs.seedNumber, default: 0]
             if lWrong != rWrong { return lWrong > rWrong }

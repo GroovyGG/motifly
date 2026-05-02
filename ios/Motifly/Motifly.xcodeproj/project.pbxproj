@@ -46,6 +46,9 @@
 		BF25 /* DebugStudyTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR25 /* DebugStudyTimelineView.swift */; };
 		BF26 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR26 /* SettingsView.swift */; };
 		BF28 /* DictationPastSessionSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR28 /* DictationPastSessionSummaryView.swift */; };
+		BF29 /* DictationErrorClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR29 /* DictationErrorClassifier.swift */; };
+		BF2A /* WordMasteryUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2A /* WordMasteryUpdater.swift */; };
+		BF2B /* WordMasteryHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR2B /* WordMasteryHeader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -89,6 +92,9 @@
 		FR25 /* DebugStudyTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugStudyTimelineView.swift; sourceTree = "<group>"; };
 		FR26 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		FR28 /* DictationPastSessionSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationPastSessionSummaryView.swift; sourceTree = "<group>"; };
+		FR29 /* DictationErrorClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationErrorClassifier.swift; sourceTree = "<group>"; };
+		FR2A /* WordMasteryUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMasteryUpdater.swift; sourceTree = "<group>"; };
+		FR2B /* WordMasteryHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordMasteryHeader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +175,8 @@
 				FR1F /* DictationWordOrdering.swift */,
 				FR20 /* DictationPlaybackEngine.swift */,
 				FR24 /* StudyEventLogger.swift */,
+				FR29 /* DictationErrorClassifier.swift */,
+				FR2A /* WordMasteryUpdater.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -191,6 +199,7 @@
 				FR18 /* DeterminerWordCardView.swift */,
 				FR1A /* PronounWordCardView.swift */,
 				FR1C /* PrepositionWordCardView.swift */,
+				FR2B /* WordMasteryHeader.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -302,6 +311,9 @@
 				BF1F /* DictationWordOrdering.swift in Sources */,
 				BF20 /* DictationPlaybackEngine.swift in Sources */,
 				BF24 /* StudyEventLogger.swift in Sources */,
+				BF29 /* DictationErrorClassifier.swift in Sources */,
+				BF2A /* WordMasteryUpdater.swift in Sources */,
+				BF2B /* WordMasteryHeader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

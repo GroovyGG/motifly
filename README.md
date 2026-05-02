@@ -12,7 +12,7 @@ Use this block if you need a **truthful** one-screen description of the project 
 
 **Motifly** — Personal iOS project (Swift / SwiftUI / SwiftData). Ships a **device-local French vocabulary** experience: bundled CSV seeds, SwiftData import, **Vocabulary** tab with search, recent lookups, and **kind-specific word cards** (nouns through prepositions). **Audio** uses **on-device** `AVSpeechSynthesizer` for French playback; vocabulary cards support optional **user-recorded “Mine”** takes for comparison. **Dictation** tab: **English prompt → type French lemma**, normalization-based check, grouped progression/review, and replayable per-attempt logs. **Home** is now a study dashboard (heatmap, progress cards, daily/weekly goals) and includes debug timeline entry for event validation.
 
-**Not implemented in the client yet** (described only as **target** design in `database_schema.md` / README): remote APIs for audio, sentence-level dictation with grammar tagging, retrieval scoring, review logs backed by a server, and real image upload pipelines.
+**Not implemented in the client yet** (described only as **target** design in `docs/database_schema.md` / README): remote APIs for audio, sentence-level dictation with grammar tagging, retrieval scoring, review logs backed by a server, and real image upload pipelines.
 
 ---
 
@@ -21,8 +21,8 @@ Use this block if you need a **truthful** one-screen description of the project 
 Motifly is in **active development**. This repository holds:
 
 - **`ios/Motifly/`** — SwiftUI iOS app (local-first vocabulary and dictation; see **Current architecture** below).
-- **`motifly_prd_mvp.md`** — original MVP product requirements (local-first, simpler tags).
-- **`database_schema.md`** — **target PostgreSQL schema** and reference DDL (learner-centric, rich attempts, full-stack direction) for a future cloud-backed phase.
+- **`docs/motifly_prd_mvp.md`** — original MVP product requirements (local-first, simpler tags).
+- **`docs/database_schema.md`** — **target PostgreSQL schema** and reference DDL (learner-centric, rich attempts, full-stack direction) for a future cloud-backed phase.
 
 The **target at-scale engineering model** (later section) goes beyond the original PRD: cloud backend, device-based learners, grammar as content, similarity scoring, and rollup progress. That stack is **not** implemented in the app yet; the shipped client is described under **Current architecture**.
 
@@ -111,7 +111,7 @@ flowchart LR
 
 ## Mental model (what each layer is for)
 
-*PostgreSQL concepts for the **target** cloud platform in [`database_schema.md`](database_schema.md). The running app uses SwiftData models locally instead.*
+*PostgreSQL concepts for the **target** cloud platform in [`docs/database_schema.md`](docs/database_schema.md). The running app uses SwiftData models locally instead.*
 
 | Unit | Role |
 | ---- | ---- |
@@ -140,7 +140,7 @@ Optional **`media_assets`** table tracks uploads (owner learner, storage key, MI
 
 ## Target scope (cloud-backed product)
 
-- Backend API + PostgreSQL schema as in [`database_schema.md`](database_schema.md)
+- Backend API + PostgreSQL schema as in [`docs/database_schema.md`](docs/database_schema.md)
 - Sentence library with translations and grammar/content associations
 - Grammar topic **screens** backed by `grammar_topics`
 - Presigned uploads for user audio/images
@@ -178,7 +178,7 @@ Optional **`media_assets`** table tracks uploads (owner learner, storage key, MI
 
 ## Database tables (quick reference)
 
-Full column lists, constraints, indexes, and SQL DDL: **[`database_schema.md`](database_schema.md)**.
+Full column lists, constraints, indexes, and SQL DDL: **[`docs/database_schema.md`](docs/database_schema.md)**.
 
 | Table | Purpose |
 | ----- | ------- |
@@ -200,7 +200,7 @@ Full column lists, constraints, indexes, and SQL DDL: **[`database_schema.md`](d
 
 ## Suggested build order
 
-1. Postgres migrations from `database_schema.md`
+1. Postgres migrations from `docs/database_schema.md`
 2. Scoring module + JSON I/O contract + `scoring_version` strings
 3. API: bootstrap, sentences, attempt pipeline with transactional aggregate updates
 4. Presign uploads + optional `media_assets`
@@ -224,8 +224,12 @@ Full column lists, constraints, indexes, and SQL DDL: **[`database_schema.md`](d
 
 | File | Contents |
 | ---- | -------- |
-| [`motifly_prd_mvp.md`](motifly_prd_mvp.md) | MVP user stories, screens, original local SwiftData scope |
-| [`database_schema.md`](database_schema.md) | Target PostgreSQL schema, ER diagram, reference DDL, scoring boundary notes |
+| [`docs/motifly_prd_mvp.md`](docs/motifly_prd_mvp.md) | MVP user stories, screens, original local SwiftData scope |
+| [`docs/database_schema.md`](docs/database_schema.md) | Target PostgreSQL schema, ER diagram, reference DDL, scoring boundary notes |
+| [`docs/database_schema.zh.md`](docs/database_schema.zh.md) | 数据库说明（中文，与英文 DDL 对照） |
+| [`docs/database_schema_v1_vocab.md`](docs/database_schema_v1_vocab.md) | v1 词汇 / SwiftData 侧字段说明（非 Postgres v2） |
+| [`docs/french_dictation_memory_model.md`](docs/french_dictation_memory_model.md) | 听写记忆模型 V1 设计长文 |
+| [`docs/mastery_weakness_next_review.zh.md`](docs/mastery_weakness_next_review.zh.md) | Mastery / Weakness / Next Review 算法与展示（中文） |
 
 ---
 

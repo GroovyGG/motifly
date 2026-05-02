@@ -365,9 +365,30 @@ struct HomeView: View {
         return "\(sign)\(String(format: "%.1f", diff)) h vs last week"
     }
 
+    /// Days with any logged activity: timeline events **or** dictation attempts (attempts alone drive the heatmap when study events were never written).
+    private var activeStudyDays: Set<Date> {
+        let cal = Calendar.current
+        let fromAttempts = Set(attempts.map { cal.startOfDay(for: $0.submittedAt) })
+        let fromEvents = Set(studyEvents.map { cal.startOfDay(for: $0.occurredAt) })
+        return fromAttempts.union(fromEvents)
+    }
+
+    /// Per-day intensity for the heatmap: `max(attempts, studyEvents)` so dictation practice counts even without `VocabularyStudyEvent`, without double-counting each submit twice when both exist.
+    private var heatmapDayCounts: [Date: Int] {
+        let cal = Calendar.current
+        let attemptCounts = Dictionary(grouping: attempts.map { cal.startOfDay(for: $0.submittedAt) }) { $0 }.mapValues(\.count)
+        let eventCounts = Dictionary(grouping: studyEvents.map { cal.startOfDay(for: $0.occurredAt) }) { $0 }.mapValues(\.count)
+        let allKeys = Set(attemptCounts.keys).union(eventCounts.keys)
+        var merged: [Date: Int] = [:]
+        for d in allKeys {
+            merged[d] = max(attemptCounts[d] ?? 0, eventCounts[d] ?? 0)
+        }
+        return merged
+    }
+
     private var studyStreakDays: Int {
         let cal = Calendar.current
-        let days = Set(studyEvents.map { cal.startOfDay(for: $0.occurredAt) })
+        let days = activeStudyDays
         var count = 0
         var cursor = cal.startOfDay(for: Date())
         while days.contains(cursor) {
@@ -381,8 +402,9 @@ struct HomeView: View {
     private var heatmapColumns: [[Int]] {
         let cal = Calendar.current
         let now = Date()
-        guard let start = cal.date(byAdding: .day, value: -181, to: now) else { return [] }
-        let dayCounts = Dictionary(grouping: studyEvents.map { cal.startOfDay(for: $0.occurredAt) }) { $0 }.mapValues(\.count)
+        guard let startRaw = cal.date(byAdding: .day, value: -181, to: now) else { return [] }
+        let start = cal.startOfDay(for: startRaw)
+        let dayCounts = heatmapDayCounts
         let maxCount = max(1, dayCounts.values.max() ?? 1)
         var columns: [[Int]] = []
         var cursor = start
